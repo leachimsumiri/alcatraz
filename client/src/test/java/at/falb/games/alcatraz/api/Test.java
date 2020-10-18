@@ -1,8 +1,5 @@
-import at.falb.games.alcatraz.api.Alcatraz;
-import at.falb.games.alcatraz.api.IllegalMoveException;
-import at.falb.games.alcatraz.api.MoveListener;
-import at.falb.games.alcatraz.api.Player;
-import at.falb.games.alcatraz.api.Prisoner;
+package at.falb.games.alcatraz.api;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -14,10 +11,10 @@ import java.util.List;
 public class Test implements MoveListener {
 
   private static final byte NUM_PLAYER = 2;
-  private static final Test TEST_GAMES[] = new Test[NUM_PLAYER];
-  private static final Alcatraz ALCATRAZ_INSTANCES[] = new Alcatraz[NUM_PLAYER];
+  private static final Test[] TEST_GAMES = new Test[NUM_PLAYER];
+  private static final Alcatraz[] ALCATRAZ_INSTANCES = new Alcatraz[NUM_PLAYER];
 
-  private final List<Alcatraz> otherAlcatraz= new ArrayList<>(NUM_PLAYER - 1);
+  private final List<Alcatraz> otherAlcatraz = new ArrayList<>(NUM_PLAYER - 1);
 
   public Test() {
   }
