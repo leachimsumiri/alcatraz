@@ -1,9 +1,9 @@
-import at.falb.games.alcatraz.api.*;
+package at.falb.games.alcatraz.api;
 
 import java.util.List;
 
 public class GameMoveListener implements MoveListener {
-    private List<GamePlayer> other_players;
+    private final List<GamePlayer> other_players;
 
     public GameMoveListener(List<GamePlayer> other_players) {
         this.other_players = other_players;

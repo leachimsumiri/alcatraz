@@ -1,8 +1,5 @@
-import at.falb.games.alcatraz.api.Alcatraz;
-import at.falb.games.alcatraz.api.MoveListener;
-import at.falb.games.alcatraz.api.Player;
+package at.falb.games.alcatraz.api;
 
-import javax.swing.*;
 import java.util.ArrayList;
 import java.util.List;
 
