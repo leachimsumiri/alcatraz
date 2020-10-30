@@ -1,4 +1,4 @@
-import at.falb.games.alcatraz.api.Player;
+package at.falb.games.alcatraz.api;
 
 public class GamePlayer extends Player {
     private String ip;
@@ -27,12 +27,15 @@ public class GamePlayer extends Player {
     @Override
     public boolean equals(Object obj) {
         if (obj instanceof GamePlayer) {
-            GamePlayer p = (GamePlayer)obj;
-            if (p.getId() == this.getId()) {
-                return true;
-            }
+            GamePlayer p = (GamePlayer) obj;
+            return p.getId() == this.getId();
         }
         return false;
+    }
+
+    @Override
+    public int hashCode() {
+        return super.hashCode();
     }
 
     @Override
