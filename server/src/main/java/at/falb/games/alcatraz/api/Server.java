@@ -32,7 +32,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Adva
     }
 
     @Override
-    public int Register(ClientInterface client) throws RemoteException, SpreadException {
+    public int register(ClientInterface client) throws RemoteException, SpreadException {
         int PlayerID =0;
         //if (this.PlayerList.contains(client.getPlayer())){  // To avoid the dopple register from the same client (player)
         //if (this.ClientList.contains(client)){  // To avoid the dopple register from the same client (player)

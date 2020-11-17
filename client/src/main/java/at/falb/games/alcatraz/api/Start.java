@@ -3,14 +3,10 @@ package at.falb.games.alcatraz.api;
 import spread.SpreadException;
 
 import java.net.MalformedURLException;
-import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.List;
 
 public class Start {
     public static void main(String[] args) throws RemoteException, NotBoundException, MalformedURLException, SpreadException {
@@ -54,7 +50,7 @@ public class Start {
         //UnicastRemoteObject.exportObject(client, 0);
         //UnicastRemoteObject.exportObject(client_2, 1);
        int playerID = 0;
-       playerID = service.Register(client);
+       playerID = service.register(client);
         System.out.println(playerID);
 
 
