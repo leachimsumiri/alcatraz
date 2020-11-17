@@ -23,7 +23,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Adva
     public Server() throws RemoteException {
         super();
         PlayerList = new ArrayList<>();
-        ClientList = new ArrayList<>();
+        //ClientList = new ArrayList<>();
         PlayersNo = 0;
         connection = new SpreadConnection();
     }
@@ -51,7 +51,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Adva
             }
             PlayerID = this.PlayersNo ;   // the new playerID becomes the the number of already existing players
             this.PlayerList.add(client.getPlayer());
-            this.ClientList.add(client);
+            //this.ClientList.add(client);
             this.PlayersNo++;
             SpreadMessage message = new SpreadMessage();
             message.setObject(this.PlayersNo);
