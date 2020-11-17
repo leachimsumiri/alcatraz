@@ -20,7 +20,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Adva
     public Server() throws RemoteException {
         super();
         PlayerList = new ArrayList<>();
-        //ClientList = new ArrayList<>();
+        ClientList = new ArrayList<>();
         PlayersNo = 0;
         connection = new SpreadConnection();
     }
