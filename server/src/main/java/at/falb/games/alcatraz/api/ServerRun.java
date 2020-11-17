@@ -14,6 +14,8 @@ import java.rmi.registry.Registry;
 public class ServerRun {
     public static void main(String[] arg) throws RemoteException, SpreadException, UnknownHostException {
         SpreadConnection connection = new SpreadConnection();
+        SpreadListner listner = new SpreadListner();
+        connection.add(listner);
         connection.connect(InetAddress.getByName("localhost"), 0, "Server_1", false, true);
         SpreadGroup group = new SpreadGroup();
         group.join(connection, "ReplicasGroup");
