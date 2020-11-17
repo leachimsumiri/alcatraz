@@ -5,19 +5,16 @@ import spread.SpreadConnection;
 import spread.SpreadException;
 import spread.SpreadMessage;
 
-import java.io.Serializable;
-import java.net.MalformedURLException;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
 public class Server extends UnicastRemoteObject implements ServerInterface, AdvancedMessageListener {
-    private Alcatraz Game ;
-    private List<GamePlayer> PlayerList;
-    private List<ClientInterface> ClientList;
-    private int PlayersNo ;
+    private Alcatraz Game;
+    private final List<GamePlayer> PlayerList;
+    private final List<ClientInterface> ClientList;
+    private int PlayersNo;
     private SpreadConnection connection;
 
     public Server() throws RemoteException {
