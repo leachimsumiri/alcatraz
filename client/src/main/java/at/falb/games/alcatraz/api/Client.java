@@ -37,4 +37,15 @@ public class Client extends UnicastRemoteObject implements ClientInterface , Ser
         Player = player;
     }
 
+   @Override
+    public void startGame(List<GamePlayer> playerList){
+        Alcatraz game = new Alcatraz();
+        game.init(playerList.size(), this.Player.getId());
+
+        MoveListener listener = new GameMoveListener(playerList);
+        game.addMoveListener(listener);
+
+        game.showWindow();
+        game.start();
+    }
 }

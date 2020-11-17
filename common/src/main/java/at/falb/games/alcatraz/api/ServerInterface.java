@@ -13,5 +13,7 @@ public interface ServerInterface extends Remote {
     List<ServerCfg> getActiveServers() throws RemoteException;
 
     ServerCfg getMainRegistryServer() throws RemoteException;
+    
+    void beginGame() throws RemoteException, SpreadException;
 }
 

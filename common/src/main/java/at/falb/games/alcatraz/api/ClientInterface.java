@@ -9,4 +9,6 @@ public interface ClientInterface extends Remote {
     void setGamePlayersList(List<GamePlayer> gamePlayersList) throws RemoteException;
     GamePlayer getPlayer() throws RemoteException;
     void setPlayer(GamePlayer player) throws RemoteException;
+
+    void startGame(List<GamePlayer> playerList) throws RemoteException;
 }
