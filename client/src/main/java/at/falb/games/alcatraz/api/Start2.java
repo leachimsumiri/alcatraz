@@ -3,16 +3,12 @@ package at.falb.games.alcatraz.api;
 import spread.SpreadException;
 
 import java.net.MalformedURLException;
-import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
-import java.rmi.server.UnicastRemoteObject;
-import java.util.ArrayList;
-import java.util.List;
 
-public class Start {
+public class Start2 {
     public static void main(String[] args) throws RemoteException, NotBoundException, MalformedURLException, SpreadException {
         // TODO user interface to type in player name
         // TODO Connect to server and send player name
@@ -43,19 +39,16 @@ public class Start {
         //player4.setIP("127.0.0.1");
         //player4.setName("Player4");
         //playerList.add(player4);
-        //System.setProperty("java.rmi.server.hostname", "192.168.1.111");
-        Registry Reg = LocateRegistry.getRegistry("192.168.1.111",5099);
+
+        Registry Reg = LocateRegistry.getRegistry("localhost",5099);
         ServerInterface service = (ServerInterface) Reg.lookup("first");
        //ServerInterface service = (ServerInterface) Naming.lookup("rmi://localhost:5099/first");
-       //System.out.println("connection Done!!");
-       ClientInterface client = new Client();
-       //ClientInterface client_2 = new Client();
-
-        //UnicastRemoteObject.exportObject(client, 0);
-        //UnicastRemoteObject.exportObject(client_2, 1);
+       System.out.println("connection Done!!");
+       ClientInterface client_2 = new Client();
        int playerID = 0;
-       playerID = service.Register(client);
-        System.out.println(playerID);
+       playerID = service.Register(client_2);
+       System.out.println(playerID);
+
 
 
 

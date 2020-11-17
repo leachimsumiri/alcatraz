@@ -1,11 +1,12 @@
 package at.falb.games.alcatraz.api;
 
+import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Client extends UnicastRemoteObject implements ClientInterface {
+public class Client extends UnicastRemoteObject implements ClientInterface , Serializable {
 
     private List<GamePlayer> GamePlayersList = new ArrayList<>();
     private GamePlayer Player = new GamePlayer(0);
@@ -14,19 +15,23 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         super();
     }
 
-    public List<GamePlayer> getGamePlayersList() {
+    @Override
+    public List<GamePlayer> getGamePlayersList() throws RemoteException {
         return GamePlayersList;
     }
 
-    public void setGamePlayersList(List<GamePlayer> gamePlayersList) {
+    @Override
+    public void setGamePlayersList(List<GamePlayer> gamePlayersList) throws RemoteException {
         GamePlayersList = gamePlayersList;
     }
 
-    public GamePlayer getPlayer() {
+    @Override
+    public GamePlayer getPlayer() throws RemoteException {
         return Player;
     }
 
-    public void setPlayer(GamePlayer player) {
+    @Override
+    public void setPlayer(GamePlayer player) throws RemoteException {
         Player = player;
     }
 }

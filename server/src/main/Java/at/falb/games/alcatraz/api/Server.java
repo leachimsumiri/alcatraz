@@ -6,20 +6,24 @@ import spread.SpreadException;
 import spread.SpreadMessage;
 
 import java.io.Serializable;
+import java.net.MalformedURLException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Server extends UnicastRemoteObject implements ServerInterface, Serializable, AdvancedMessageListener {
+public class Server extends UnicastRemoteObject implements ServerInterface, AdvancedMessageListener {
     private Alcatraz Game ;
     private List<GamePlayer> PlayerList;
+    private List<ClientInterface> ClientList;
     private int PlayersNo ;
     private SpreadConnection connection;
 
     public Server() throws RemoteException {
         super();
         PlayerList = new ArrayList<>();
+        ClientList = new ArrayList<>();
         PlayersNo = 0;
         connection = new SpreadConnection();
     }
@@ -31,29 +35,34 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Seri
     }
 
     @Override
-    public int Register(Client client) throws RemoteException, SpreadException  {
+    public int Register(ClientInterface client) throws RemoteException, SpreadException {
         int PlayerID =0;
-        if (this.PlayerList.contains(client.getPlayer())){  // To avoid the dopple register from the same client (player)
-            return client.getPlayer().getId();
-        }
-        if (PlayersNo < 4){
+        //if (this.PlayerList.contains(client.getPlayer())){  // To avoid the dopple register from the same client (player)
+        //if (this.ClientList.contains(client)){  // To avoid the dopple register from the same client (player)
+        //    System.out.println("Client already exists!!");
+        //    return client.getPlayer().getId();
+        //}
+        if (this.PlayersNo < 4){
             for (GamePlayer P : this.PlayerList ){
                 if (P.getName().equals(client.getPlayer().getName())){  // To avoid names similarity
+                    System.out.println("Player name already taken!!");
                     return -1;
                 }
             }
-            PlayerID = PlayersNo ;   // the new playerID becomes the the number of already existing players
-            client.getPlayer().setId(PlayerID);
+            PlayerID = this.PlayersNo ;   // the new playerID becomes the the number of already existing players
             this.PlayerList.add(client.getPlayer());
-            PlayersNo++;
+            this.ClientList.add(client);
+            this.PlayersNo++;
             SpreadMessage message = new SpreadMessage();
             message.setObject(this.PlayersNo);
-            message.addGroup(connection.getPrivateGroup().toString());  /////////////////////////////////////////
+            message.addGroup("ReplicasGroup");  /////////////////////////////////////////
             message.setReliable();
             connection.multicast(message);
+            System.out.println("New Player!!");
             return PlayerID;
         }
         else{
+            System.out.println("Max players reached!!");
             return -2;
         }
     }
