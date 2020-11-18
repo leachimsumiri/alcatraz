@@ -4,6 +4,7 @@ import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.ClientInterface;
 import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.ServerInterface;
+import at.falb.games.alcatraz.api.group.communication.SpreadListener;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.AdvancedMessageListener;
@@ -16,23 +17,24 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Server extends UnicastRemoteObject implements ServerInterface, AdvancedMessageListener {
+public class Server extends UnicastRemoteObject implements ServerInterface {
     private static final Logger LOG = LogManager.getLogger(Server.class);
     private Alcatraz game;
-    private final List<GamePlayer> gamePlayerList;
+    private final List<GamePlayer> gamePlayerList = new ArrayList<>();
     private SpreadConnection connection;
     private int playerNumber;
+    private SpreadListener spreadListener;
 
     public Server() throws RemoteException {
         super();
-        gamePlayerList = new ArrayList<>();
         connection = new SpreadConnection();
     }
 
     public Server(SpreadConnection connection) throws RemoteException {
-        this();
+        super();
         this.connection = connection;
-
+        this.spreadListener = new SpreadListener();
+        connection.add(this.spreadListener);
     }
 
     @Override
@@ -59,17 +61,4 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Adva
         return size;
     }
 
-    @Override
-    public void regularMessageReceived(SpreadMessage spreadMessage) {
-
-    }
-
-    @Override
-    public void membershipMessageReceived(SpreadMessage spreadMessage) {
-        try {
-            this.playerNumber = (int) spreadMessage.getObject();
-        } catch (SpreadException e) {
-            LOG.error("Something went wrong!", e);
-        }
-    }
 }

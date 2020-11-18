@@ -36,8 +36,6 @@ public class ServerRun {
         ServerInterface server = new Server(connection);
         Registry registry = LocateRegistry.createRegistry(serverCfg.getRegistryPort());
         registry.rebind(serverCfg.getName(), server);
-
-        LOG.info(connection.getPrivateGroup());
     }
 }
 
