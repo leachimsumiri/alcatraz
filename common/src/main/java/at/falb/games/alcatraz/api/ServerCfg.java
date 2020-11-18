@@ -1,4 +1,4 @@
-package at.falb.games.alcatraz.api.logic;
+package at.falb.games.alcatraz.api;
 
 import java.util.Objects;
 
