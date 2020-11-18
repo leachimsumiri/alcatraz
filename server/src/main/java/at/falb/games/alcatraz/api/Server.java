@@ -13,14 +13,12 @@ import java.util.List;
 public class Server extends UnicastRemoteObject implements ServerInterface, AdvancedMessageListener {
     private Alcatraz Game;
     private final List<GamePlayer> PlayerList;
-    private final List<ClientInterface> ClientList;
     private int PlayersNo;
     private SpreadConnection connection;
 
     public Server() throws RemoteException {
         super();
         PlayerList = new ArrayList<>();
-        ClientList = new ArrayList<>();
         PlayersNo = 0;
         connection = new SpreadConnection();
     }
@@ -32,23 +30,23 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Adva
     }
 
     @Override
-    public int register(ClientInterface client) throws RemoteException, SpreadException {
+    public int register(GamePlayer player) throws RemoteException, SpreadException {
         int PlayerID =0;
-        //if (this.PlayerList.contains(client.getPlayer())){  // To avoid the dopple register from the same client (player)
-        //if (this.ClientList.contains(client)){  // To avoid the dopple register from the same client (player)
-        //    System.out.println("Client already exists!!");
-        //    return client.getPlayer().getId();
-        //}
         if (this.PlayersNo < 4){
             for (GamePlayer P : this.PlayerList ){
-                if (P.getName().equals(client.getPlayer().getName())){  // To avoid names similarity
-                    System.out.println("Player name already taken!!");
+                if (P.getIp().equals(player.getIp()) && P.getPort() == player.getPort()) {  // avoid duplicated register from the same host
+                    System.out.println("Client already exists!!");
+                    return player.getId();
+                }
+
+                if (P.getName().equals(player.getName())){  // To avoid names similarity
+                    System.out.println("Name is already taken!!");
                     return -1;
                 }
             }
             PlayerID = this.PlayersNo ;   // the new playerID becomes the the number of already existing players
-            this.PlayerList.add(client.getPlayer());
-            //this.ClientList.add(client);
+            player.setId(PlayerID);
+            this.PlayerList.add(player);
             this.PlayersNo++;
             SpreadMessage message = new SpreadMessage();
             message.setObject(this.PlayersNo);

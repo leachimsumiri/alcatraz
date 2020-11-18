@@ -6,6 +6,6 @@ import java.rmi.Remote;
 import java.rmi.RemoteException;
 
 public interface ServerInterface extends Remote {
-    int register(ClientInterface client) throws RemoteException, SpreadException;
+    int register(GamePlayer player) throws RemoteException, SpreadException;
 }
 

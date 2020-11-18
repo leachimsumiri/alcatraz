@@ -11,8 +11,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface , Ser
     private List<GamePlayer> GamePlayersList = new ArrayList<>();
     private GamePlayer Player = new GamePlayer(0);
 
-    public Client() throws RemoteException{
+    public Client(String IP, int port) throws RemoteException{
         super();
+        this.Player.setIP(IP); ;
+        this.Player.setPort(port);
     }
 
     @Override
@@ -34,4 +36,5 @@ public class Client extends UnicastRemoteObject implements ClientInterface , Ser
     public void setPlayer(GamePlayer player) throws RemoteException {
         Player = player;
     }
+
 }

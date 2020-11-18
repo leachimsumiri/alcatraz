@@ -40,17 +40,32 @@ public class Start {
         //player4.setName("Player4");
         //playerList.add(player4);
         //System.setProperty("java.rmi.server.hostname", "192.168.1.111");
+
         Registry Reg = LocateRegistry.getRegistry("192.168.1.111",5099);
         ServerInterface service = (ServerInterface) Reg.lookup("first");
-       //ServerInterface service = (ServerInterface) Naming.lookup("rmi://localhost:5099/first");
-       //System.out.println("connection Done!!");
-       ClientInterface client = new Client();
-       //ClientInterface client_2 = new Client();
 
-        //UnicastRemoteObject.exportObject(client, 0);
-        //UnicastRemoteObject.exportObject(client_2, 1);
+        ClientInterface client_1 = new Client("192.168.1.111" , 5100);   /////// local IP
+        Registry Reg_1 = LocateRegistry.createRegistry(client_1.getPlayer().getPort());      ////// local IP
+        Reg_1.rebind("", client_1);
+        client_1.getPlayer().setName("Player1");
+
+        ClientInterface client_2 = new Client("192.168.1.111" , 5200);
+        Registry Reg_2 = LocateRegistry.createRegistry(client_2.getPlayer().getPort());
+        Reg_2.rebind("", client_2);
+        client_2.getPlayer().setName("Player2");
+
+        ClientInterface client_3 = new Client("192.168.1.111" , 5300);
+        Registry Reg_3 = LocateRegistry.createRegistry(client_3.getPlayer().getPort());
+        Reg_2.rebind("", client_3);
+        client_3.getPlayer().setName("Player2");
+
        int playerID = 0;
-       playerID = service.register(client);
+       playerID = service.register(client_1.getPlayer());
+        System.out.println(playerID);
+       playerID = service.register(client_2.getPlayer());
+        System.out.println(playerID);
+       playerID = service.register(client_3.getPlayer());
+
         System.out.println(playerID);
 
 
