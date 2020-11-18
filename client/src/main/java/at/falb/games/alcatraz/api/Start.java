@@ -11,9 +11,10 @@ public class Start {
     public static void main(String[] args) throws RemoteException, NotBoundException, SpreadException {
         Registry Reg = LocateRegistry.getRegistry("192.168.1.111", 5099);
         ServerInterface service = (ServerInterface) Reg.lookup("first");
-        ClientInterface client = new Client();
-        int playerID;
-        playerID = service.register(client);
-        System.out.println(playerID);
+
+        ClientInterface client_1 = new Client("192.168.1.111" , 5100);   /////// local IP
+        Registry Reg_1 = LocateRegistry.createRegistry(client_1.getPlayer().getPort());      ////// local IP
+        Reg_1.rebind("", client_1);
+        client_1.getPlayer().setName("Player1");
     }
 }
