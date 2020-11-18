@@ -2,9 +2,7 @@ package at.falb.games.alcatraz.api;
 
 
 import at.falb.games.alcatraz.api.logic.Server;
-import at.falb.games.alcatraz.api.logic.ServerCfg;
 import at.falb.games.alcatraz.api.logic.ServerValues;
-import at.falb.games.alcatraz.api.logic.YamlHandler;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.SpreadConnection;
@@ -21,7 +19,7 @@ public class ServerRun {
 
     public static void main(String[] arg) throws IOException, SpreadException {
 
-        final ServerCfg serverCfg = YamlHandler.readYaml(arg[0]);
+        final ServerCfg serverCfg = JsonHandler.readServerJson(arg[0]);
 
         SpreadConnection connection = new SpreadConnection();
         connection.connect(InetAddress.getByName(serverCfg.getSpreaderIp()),

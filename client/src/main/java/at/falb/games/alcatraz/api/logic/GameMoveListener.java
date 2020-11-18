@@ -1,4 +1,10 @@
-package at.falb.games.alcatraz.api;
+package at.falb.games.alcatraz.api.logic;
+
+import at.falb.games.alcatraz.api.Alcatraz;
+import at.falb.games.alcatraz.api.GamePlayer;
+import at.falb.games.alcatraz.api.MoveListener;
+import at.falb.games.alcatraz.api.Player;
+import at.falb.games.alcatraz.api.Prisoner;
 
 import java.util.List;
 
