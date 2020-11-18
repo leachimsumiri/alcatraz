@@ -1,5 +1,6 @@
 package at.falb.games.alcatraz.api.group.communication;
 
+import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.ServerRun;
 import at.falb.games.alcatraz.api.logic.GroupConnection;
 import at.falb.games.alcatraz.api.logic.Server;
@@ -27,8 +28,14 @@ public class SpreadListener implements AdvancedMessageListener {
     @Override
     public void regularMessageReceived(SpreadMessage spreadMessage) {
         try {
+            LOG.info("Received UpdateMessage:");
             LOG.info("Message from: " + spreadMessage.getSender() + "\nMessage: " + spreadMessage.getObject().toString());
-            LOG.info("Message from: " + spreadMessage.getSender() + "\nMessage: " + spreadMessage.getObject().toString());
+            ArrayList<GamePlayer> gamePlayerArrayList = (ArrayList<GamePlayer>) spreadMessage.getObject();
+
+            for(GamePlayer gamePlayer : gamePlayerArrayList) {
+                LOG.info("Gameplayer: "+ gamePlayer.getIp() + " Name: " + gamePlayer.getName());
+            }
+
         } catch (SpreadException e) {
             LOG.info("No Object can be found!");
             e.printStackTrace();

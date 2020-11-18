@@ -5,6 +5,7 @@ import at.falb.games.alcatraz.api.ClientInterface;
 import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.ServerInterface;
 import at.falb.games.alcatraz.api.group.communication.SpreadListener;
+import at.falb.games.alcatraz.api.group.communication.SpreadMessageSender;
 import at.falb.games.alcatraz.impl.Game;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -25,16 +26,19 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     private SpreadConnection connection;
     private int playerNumber;
     private SpreadListener spreadListener;
+    private SpreadMessageSender spreadMessageSender;
 
     public Server() throws RemoteException {
         super();
         connection = new SpreadConnection();
+        spreadMessageSender = new SpreadMessageSender(connection);
     }
 
     public Server(SpreadConnection connection) throws RemoteException {
         super();
         this.connection = connection;
         this.spreadListener = new SpreadListener();
+        this.spreadMessageSender = new SpreadMessageSender(connection);
         connection.add(this.spreadListener);
     }
 

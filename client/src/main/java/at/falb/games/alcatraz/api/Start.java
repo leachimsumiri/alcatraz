@@ -16,5 +16,6 @@ public class Start {
         Registry Reg_1 = LocateRegistry.createRegistry(client_1.getPlayer().getPort());      ////// local IP
         Reg_1.rebind("", client_1);
         client_1.getPlayer().setName("Player1");
+
     }
 }
