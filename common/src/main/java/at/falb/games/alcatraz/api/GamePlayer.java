@@ -1,5 +1,9 @@
 package at.falb.games.alcatraz.api;
 
+import org.apache.commons.lang3.StringUtils;
+
+import java.util.Objects;
+
 public class GamePlayer extends Player {
     private String ip;
     private int port = -1;
@@ -26,32 +30,27 @@ public class GamePlayer extends Player {
 
     @Override
     public boolean equals(Object obj) {
-        if (obj instanceof GamePlayer) {
-            GamePlayer p = (GamePlayer) obj;
-            return p.getId() == this.getId();
+        if (obj instanceof Player) {
+            Player p = (Player) obj;
+            if (StringUtils.isAnyBlank(getName(), p.getName())) {
+                return false;
+            }
+            return this.getName().equals(p.getName());
         }
         return false;
     }
 
     @Override
     public int hashCode() {
-        return super.hashCode();
+        return StringUtils.isNotBlank(getName()) ? -1 : Objects.hash(getName());
     }
 
     @Override
     public String toString() {
-        String result = "Player[" + this.getId();
-        if (this.getName() != null) {
-            result = result + ", " + this.getName();
-        }
-        if (this.ip != null) {
-            result = result + ", " + this.ip;
-        }
-        if (this.port != -1) {
-            result = result + ", " + this.port;
-        }
-
-        result = result + "]";
-        return result;
+        return "GamePlayer{" +
+                "ip='" + ip + '\'' +
+                ", port=" + port +
+                ", " + super.toString() +
+                '}';
     }
 }
