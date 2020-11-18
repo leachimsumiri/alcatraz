@@ -1,43 +1,102 @@
 package at.falb.games.alcatraz.api.group.communication;
 
+import at.falb.games.alcatraz.api.ServerRun;
+import at.falb.games.alcatraz.api.logic.GroupConnection;
+import at.falb.games.alcatraz.api.logic.Server;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 import spread.AdvancedMessageListener;
 import spread.SpreadException;
+import spread.SpreadGroup;
 import spread.SpreadMessage;
+
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 public class SpreadListener implements AdvancedMessageListener {
 
+    private static final Logger LOG = LogManager.getLogger(SpreadListener.class);
 
+    private List<GroupConnection> groupConnectionList = new ArrayList<>();
+
+    public List<GroupConnection> getGroupConnectionList() {
+        return groupConnectionList;
+    }
 
     @Override
     public void regularMessageReceived(SpreadMessage spreadMessage) {
         try {
-            System.out.println("Message from: " + spreadMessage.getSender() + "\nMessage: " + spreadMessage.getObject().toString());
+            LOG.info("Message from: " + spreadMessage.getSender() + "\nMessage: " + spreadMessage.getObject().toString());
+            LOG.info("Message from: " + spreadMessage.getSender() + "\nMessage: " + spreadMessage.getObject().toString());
         } catch (SpreadException e) {
-            System.out.println("No Object can be found!");
+            LOG.info("No Object can be found!");
             e.printStackTrace();
         }
     }
 
     @Override
     public void membershipMessageReceived(SpreadMessage spreadMessage) {
-          System.out.println("Membership message: " + spreadMessage.getMembershipInfo());
-          System.out.println("MessageType: " + spreadMessage.getType());
+          //LOG.debug("Membership message: " + spreadMessage.getMembershipInfo());
+          //LOG.debug("Message from Name: " + spreadMessage.getMembershipInfo().getMembers());
+        ArrayList<GroupConnection> currentGroupConnections = new ArrayList<>();
 
-          if(spreadMessage.getMembershipInfo().isRegularMembership()) {
+        spreadMessage.getMembershipInfo().getMembers();
+        for (SpreadGroup sg: spreadMessage.getMembershipInfo().getMembers()) {
+            currentGroupConnections.add(createGroupConnection(sg.toString()));
+        }
+        updateGroupView(currentGroupConnections);
 
-          } else if(spreadMessage.getMembershipInfo().isCausedByDisconnect()) {
+        LOG.info("Current Group View:");
+        for (GroupConnection gc : groupConnectionList) {
+            LOG.info(gc.getId() + " " + gc.getHostname());
+        }
 
-          } else if(spreadMessage.getMembershipInfo().isCausedByJoin()) {
+        /*if(spreadMessage.getMembershipInfo().isRegularMembership()) {
+          LOG.debug("Regular Membership Message: " + spreadMessage.getMembershipInfo().getJoined());
+          addToGoupView(createGroupConnection(spreadMessage.getMembershipInfo().getJoined().toString()));
+        } else if(spreadMessage.getMembershipInfo().isCausedByDisconnect()) {
+          LOG.debug("Disconnect Message: "+ spreadMessage.getMembershipInfo().getLeft());
+          removeFromGroupView(createGroupConnection(spreadMessage.getMembershipInfo().getLeft().toString()));
+        } else if(spreadMessage.getMembershipInfo().isCausedByJoin()) {
+          LOG.debug("Join Message: " + spreadMessage.getMembershipInfo().getJoined());
+          addToGoupView(createGroupConnection(spreadMessage.getMembershipInfo().getJoined().toString()));
+        } else if(spreadMessage.getMembershipInfo().isCausedByLeave()) {
+          LOG.debug("Leave Message: " + spreadMessage.getMembershipInfo().getLeft());
+          removeFromGroupView(createGroupConnection(spreadMessage.getMembershipInfo().getLeft().toString()));
+        } else if(spreadMessage.getMembershipInfo().isCausedByNetwork()) {
+          LOG.debug("Network Error Message:" + spreadMessage.getMembershipInfo().getLeft());
+          removeFromGroupView(createGroupConnection(spreadMessage.getMembershipInfo().getLeft().toString()));
+        } else if(spreadMessage.getMembershipInfo().isSelfLeave()) {
+          LOG.debug("Self Leave Message" + spreadMessage.getMembershipInfo().getLeft());
+          removeFromGroupView(createGroupConnection(spreadMessage.getMembershipInfo().getLeft().toString()));
+        } else if(spreadMessage.getMembershipInfo().isTransition()) {
+          LOG.debug("Transition Message");
+        }*/
 
-          } else if(spreadMessage.getMembershipInfo().isCausedByLeave()) {
+    }
 
-          } else if(spreadMessage.getMembershipInfo().isCausedByNetwork()) {
+    public void updateGroupView(Collection<GroupConnection> groupConnections) {
+        groupConnectionList.clear();
+        groupConnectionList.addAll(groupConnections);
+    }
 
-          } else if(spreadMessage.getMembershipInfo().isSelfLeave()) {
+    public void addToGoupView(GroupConnection groupConnection) {
+        LOG.debug("add To Group View ID: " + groupConnection.getId() + " Hostname:" + groupConnection.getHostname());
+        groupConnectionList.add(groupConnection);
+    }
 
-          } else if(spreadMessage.getMembershipInfo().isTransition()) {
+    public void removeFromGroupView(GroupConnection groupConnection) {
+        LOG.debug("remove from Group View ID: " + groupConnection.getId() + " Hostname:" + groupConnection.getHostname());
+        groupConnectionList.remove(groupConnection);
+    }
 
-          }
+    public GroupConnection createGroupConnection(String groupConnectionString) {
+        //LOG.debug("create GroupConneciton");
+        //LOG.debug(groupConnectionString);
 
+        String[] splited = groupConnectionString.split("#");
+
+        return new GroupConnection(splited[1], splited[2]);
     }
 }

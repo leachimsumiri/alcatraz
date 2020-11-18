@@ -5,6 +5,7 @@ import at.falb.games.alcatraz.api.ClientInterface;
 import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.ServerInterface;
 import at.falb.games.alcatraz.api.group.communication.SpreadListener;
+import at.falb.games.alcatraz.impl.Game;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.AdvancedMessageListener;
@@ -38,19 +39,19 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     @Override
-    public int register(ClientInterface client) throws RemoteException, SpreadException {
-        if (gamePlayerList.size() > ServerValues.MAX_PLAYERS) {
+    public int register(GamePlayer gamePlayer) throws RemoteException, SpreadException {
+/*        if (gamePlayerList.size() > ServerValues.MAX_PLAYERS) {
             String msg = "Max players reached!!";
             LOG.error(msg);
             return -2;
         }
-        if (gamePlayerList.contains(client.getPlayer())) {
+        if (gamePlayerList.contains(gamePlayer.getPlayer())) {
             String msg = "Player name already taken!!";
             LOG.error(msg);
             return -1;
         }
 
-        gamePlayerList.add(client.getPlayer());
+        gamePlayerList.add(gamePlayer.getPlayer());
         final int size = gamePlayerList.size();
         SpreadMessage message = new SpreadMessage();
         message.setObject(size);
@@ -58,7 +59,8 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         message.setReliable();
         connection.multicast(message);
         LOG.info("New Player!!");
-        return size;
+        return size;*/
+        return 0;
     }
 
 }
