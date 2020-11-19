@@ -1,6 +1,7 @@
 package at.falb.games.alcatraz.api;
 
 import at.falb.games.alcatraz.api.logic.ClientValues;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.IOException;
 import java.rmi.NotBoundException;
@@ -10,7 +11,8 @@ import java.rmi.registry.Registry;
 public class Start {
     public static void main(String[] args) throws IOException, NotBoundException {
 
-        final ClientCfg clientCfg = JsonHandler.readClientJson(args[0], ClientValues.MAIN_SERVER);
+        String serverName = args.length == 2 && StringUtils.isNotBlank(args[1]) ? args[1] : ClientValues.MAIN_SERVER;
+        final ClientCfg clientCfg = JsonHandler.readClientJson(args[0], serverName);
 
         Registry Reg = LocateRegistry.getRegistry(clientCfg.getServerCfg().getServerIp(), clientCfg.getServerCfg().getRegistryPort());
         ServerInterface service = (ServerInterface) Reg.lookup(ClientValues.MAIN_SERVER);
