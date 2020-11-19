@@ -3,7 +3,7 @@ package at.falb.games.alcatraz.api.logic;
 import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.ServerInterface;
-import at.falb.games.alcatraz.api.group.communication.SpreadListener;
+import at.falb.games.alcatraz.api.group.communication.SpreadMessageListener;
 import at.falb.games.alcatraz.api.group.communication.SpreadMessageSender;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -22,7 +22,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     private final List<GamePlayer> gamePlayerList = new ArrayList<>();
     private final SpreadConnection connection;
     private int playerNumber;
-    private SpreadListener spreadListener;
+    private SpreadMessageListener spreadMessageListener;
     private final SpreadMessageSender spreadMessageSender;
 
     public Server() throws RemoteException {
@@ -34,9 +34,9 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     public Server(SpreadConnection connection) throws RemoteException {
         super();
         this.connection = connection;
-        this.spreadListener = new SpreadListener();
+        this.spreadMessageListener = new SpreadMessageListener();
         this.spreadMessageSender = new SpreadMessageSender(connection);
-        connection.add(this.spreadListener);
+        connection.add(this.spreadMessageListener);
     }
 
     @Override
@@ -67,13 +67,13 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     @Override
     public void sayHello(String id, LocalDateTime startTimestamp) throws RemoteException {
         // TODO: Wee need to select one Server implementation
-        SpreadListener.getGroupConnectionList().forEach(gc -> {
+        SpreadMessageListener.getGroupConnectionList().forEach(gc -> {
             if (gc.getId().equals(id)) {
                 gc.setStartTimestamp(startTimestamp);
             }
         });
-        LOG.info("Updated registers:" + SpreadListener.getGroupConnectionList());
-        LOG.info("Main register server: " + SpreadListener.getMainRegistryServer());
+        LOG.info("Updated registers:" + SpreadMessageListener.getGroupConnectionList());
+        LOG.info("Main register server: " + SpreadMessageListener.getMainRegistryServer());
     }
 
 }

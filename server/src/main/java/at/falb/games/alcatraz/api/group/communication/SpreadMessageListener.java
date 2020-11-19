@@ -3,6 +3,7 @@ package at.falb.games.alcatraz.api.group.communication;
 import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.ServerRun;
 import at.falb.games.alcatraz.api.logic.GroupConnection;
+import at.falb.games.alcatraz.api.logic.Server;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.AdvancedMessageListener;
@@ -16,9 +17,9 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.TreeSet;
 
-public class SpreadListener implements AdvancedMessageListener {
+public class SpreadMessageListener implements AdvancedMessageListener {
 
-    private static final Logger LOG = LogManager.getLogger(SpreadListener.class);
+    private static final Logger LOG = LogManager.getLogger(SpreadMessageListener.class);
 
     private static TreeSet<GroupConnection> groupConnectionList = new TreeSet<>();
 
@@ -74,7 +75,7 @@ public class SpreadListener implements AdvancedMessageListener {
                 e.printStackTrace();
             }
         } else {
-            LOG.info("Main register server: " + SpreadListener.getMainRegistryServer());
+            LOG.info("Main register server: " + SpreadMessageListener.getMainRegistryServer());
         }
 
         /*if(spreadMessage.getMembershipInfo().isRegularMembership()) {
