@@ -1,12 +1,10 @@
 package at.falb.games.alcatraz.api;
 
 
-import at.falb.games.alcatraz.api.group.communication.SpreadListener;
+import at.falb.games.alcatraz.api.group.communication.SpreadMessageListener;
 import at.falb.games.alcatraz.api.logic.GroupConnection;
 import at.falb.games.alcatraz.api.logic.Server;
-import at.falb.games.alcatraz.api.logic.ServerCfg;
 import at.falb.games.alcatraz.api.logic.ServerValues;
-import at.falb.games.alcatraz.api.logic.YamlHandler;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.SpreadConnection;
@@ -29,7 +27,7 @@ public class ServerRun {
 
     public static void main(String[] arg) throws IOException, SpreadException {
 
-        final ServerCfg serverCfg = JsonHandler.readServerJson(arg[0]);
+        serverCfg = JsonHandler.readServerJson(arg[0]);
 
         SpreadConnection connection = new SpreadConnection();
         connection.connect(InetAddress.getByName(serverCfg.getSpreaderIp()),
@@ -54,8 +52,8 @@ public class ServerRun {
     }
 
     public static void sayHi() {
-        YamlHandler.getServerCfgList().forEach(s -> {
-            final Optional<GroupConnection> optionalGroupConnection = SpreadListener.getGroupConnectionList()
+        JsonHandler.getTheOtherServers(serverCfg).forEach(s -> {
+            final Optional<GroupConnection> optionalGroupConnection = SpreadMessageListener.getGroupConnectionList()
                     .stream()
                     .filter(gc -> gc.getId().equals(s.getName())).findAny();
             if (optionalGroupConnection.isPresent()) {
