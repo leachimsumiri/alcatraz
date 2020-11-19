@@ -1,14 +1,17 @@
 package at.falb.games.alcatraz.api;
 
+import java.io.Serializable;
+import java.time.LocalDateTime;
 import java.util.Objects;
 
-public class ServerCfg {
+public class ServerCfg implements Serializable {
 
     private String name;
     private String spreaderIp;
     private String serverIp;
     private int spreaderPort;
     private int registryPort;
+    private LocalDateTime startTimestamp;
 
     public ServerCfg() {
     }
@@ -57,16 +60,45 @@ public class ServerCfg {
         this.registryPort = registryPort;
     }
 
+    public LocalDateTime getStartTimestamp() {
+        return startTimestamp;
+    }
+
+    public void setStartTimestamp(LocalDateTime startTimestamp) {
+        this.startTimestamp = startTimestamp;
+    }
+
+    public void copy(ServerCfg serverCfg) {
+        name = serverCfg.name;
+        spreaderIp = serverCfg.spreaderIp;
+        serverIp = serverCfg.serverIp;
+        spreaderPort = serverCfg.spreaderPort;
+        registryPort = serverCfg.registryPort;
+        startTimestamp = serverCfg.startTimestamp;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
         if (o == null || getClass() != o.getClass()) return false;
         ServerCfg serverCfg = (ServerCfg) o;
-        return name.equals(serverCfg.name);
+        return Objects.equals(name, serverCfg.name);
     }
 
     @Override
     public int hashCode() {
         return Objects.hash(name);
+    }
+
+    @Override
+    public String toString() {
+        return "ServerCfg{" +
+                "name='" + name + '\'' +
+                ", spreaderIp='" + spreaderIp + '\'' +
+                ", serverIp='" + serverIp + '\'' +
+                ", spreaderPort=" + spreaderPort +
+                ", registryPort=" + registryPort +
+                ", startTimestamp=" + startTimestamp +
+                '}';
     }
 }

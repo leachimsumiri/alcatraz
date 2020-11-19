@@ -4,11 +4,15 @@ import spread.SpreadException;
 
 import java.rmi.Remote;
 import java.rmi.RemoteException;
-import java.time.LocalDateTime;
+import java.util.List;
 
 public interface ServerInterface extends Remote {
     int register(GamePlayer player) throws RemoteException, SpreadException;
 
-    void sayHello(String id, LocalDateTime startTimestamp) throws RemoteException;
+    void sayHello(ServerCfg serverCfg) throws RemoteException;
+
+    List<ServerCfg> getActiveServers() throws RemoteException;
+
+    ServerCfg getMainRegistryServer() throws RemoteException;
 }
 

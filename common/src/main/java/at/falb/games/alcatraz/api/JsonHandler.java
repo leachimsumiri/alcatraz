@@ -8,15 +8,12 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class JsonHandler {
     private static final ObjectMapper objectMapper = new ObjectMapper();
-    private static final List<ServerCfg> serverCfgList = new ArrayList<>();
-    private static final List<ClientCfg> clientCfgList = new ArrayList<>();
 
     private JsonHandler() {
     }
@@ -31,7 +28,7 @@ public class JsonHandler {
                 .findAny();
         assert optionalServer.isPresent() : "This " + serverName + " is not known";
 
-        JsonHandler.serverCfgList.addAll(serverCfgList);
+        ServerClientUtility.getServerCfgList().addAll(serverCfgList);
         return optionalServer.get();
     }
 
@@ -46,7 +43,7 @@ public class JsonHandler {
                 .findAny();
         assert optionalClient.isPresent() : "This " + clientName + " is not known";
 
-        JsonHandler.clientCfgList.addAll(clientCfgList);
+        ServerClientUtility.getClientCfgList().addAll(clientCfgList);
         final ClientCfg clientCfg = optionalClient.get();
         clientCfg.setServerCfg(serverCfg);
         return clientCfg;
@@ -63,21 +60,5 @@ public class JsonHandler {
         in.close();
 
         return objectMapper.readValue(text, mapTypeReference);
-    }
-
-    public static List<ServerCfg> getTheOtherServers(ServerCfg serverCfg) {
-        return serverCfgList.stream().filter(s -> !s.equals(serverCfg)).collect(Collectors.toList());
-    }
-
-    public static List<ClientCfg> getTheOtherClients(ClientCfg clientCfg) {
-        return clientCfgList.stream().filter(s -> !s.equals(clientCfg)).collect(Collectors.toList());
-    }
-
-    public static List<ServerCfg> getServerCfgList() {
-        return serverCfgList;
-    }
-
-    public static List<ClientCfg> getClientCfgList() {
-        return clientCfgList;
     }
 }

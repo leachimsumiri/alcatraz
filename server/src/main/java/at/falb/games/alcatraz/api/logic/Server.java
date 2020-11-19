@@ -2,6 +2,8 @@ package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.GamePlayer;
+import at.falb.games.alcatraz.api.ServerCfg;
+import at.falb.games.alcatraz.api.ServerClientUtility;
 import at.falb.games.alcatraz.api.ServerInterface;
 import at.falb.games.alcatraz.api.group.communication.SpreadMessageListener;
 import at.falb.games.alcatraz.api.group.communication.SpreadMessageSender;
@@ -12,9 +14,9 @@ import spread.SpreadException;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
-import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class Server extends UnicastRemoteObject implements ServerInterface {
     private static final Logger LOG = LogManager.getLogger(Server.class);
@@ -24,6 +26,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     private int playerNumber;
     private SpreadMessageListener spreadMessageListener;
     private final SpreadMessageSender spreadMessageSender;
+    private static final List<ServerCfg> actualServersList = new ArrayList<>();
 
     public Server() throws RemoteException {
         super();
@@ -39,41 +42,40 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         connection.add(this.spreadMessageListener);
     }
 
+    public static List<ServerCfg> getActualServersList() {
+        return actualServersList;
+    }
+
     @Override
     public int register(GamePlayer gamePlayer) throws RemoteException, SpreadException {
-/*        if (gamePlayerList.size() > ServerValues.MAX_PLAYERS) {
-            String msg = "Max players reached!!";
-            LOG.error(msg);
-            return -2;
-        }
-        if (gamePlayerList.contains(gamePlayer.getPlayer())) {
-            String msg = "Player name already taken!!";
-            LOG.error(msg);
-            return -1;
-        }
-
-        gamePlayerList.add(gamePlayer.getPlayer());
-        final int size = gamePlayerList.size();
-        SpreadMessage message = new SpreadMessage();
-        message.setObject(size);
-        message.addGroup(ServerValues.REPLICAS_GROUP_NAME);
-        message.setReliable();
-        connection.multicast(message);
-        LOG.info("New Player!!");
-        return size;*/
         return 0;
     }
 
     @Override
-    public void sayHello(String id, LocalDateTime startTimestamp) throws RemoteException {
-        // TODO: Wee need to select one Server implementation
-        SpreadMessageListener.getGroupConnectionList().forEach(gc -> {
-            if (gc.getId().equals(id)) {
-                gc.setStartTimestamp(startTimestamp);
+    public void sayHello(ServerCfg serverCfg) {
+        actualServersList.forEach(gc -> {
+            if (gc.equals(serverCfg)) {
+                gc.copy(serverCfg);
             }
         });
-        LOG.info("Updated registers:" + SpreadMessageListener.getGroupConnectionList());
-        LOG.info("Main register server: " + SpreadMessageListener.getMainRegistryServer());
+        getActiveServers();
+        getMainRegistryServer();
     }
 
+    @Override
+    public List<ServerCfg> getActiveServers() {
+        final List<ServerCfg> activeServers = actualServersList
+                .stream()
+                .filter(s -> s.getStartTimestamp() != null)
+                .collect(Collectors.toList());
+        LOG.info("Updated registers:" + actualServersList);
+        return activeServers;
+    }
+
+    @Override
+    public ServerCfg getMainRegistryServer() {
+        final ServerCfg mainRegistryServer = ServerClientUtility.getMainRegistryServer(getActiveServers());
+        LOG.info("Main register server: " + mainRegistryServer);
+        return mainRegistryServer;
+    }
 }

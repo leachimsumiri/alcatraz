@@ -1,8 +1,5 @@
 package at.falb.games.alcatraz.api;
 
-
-import at.falb.games.alcatraz.api.group.communication.SpreadMessageListener;
-import at.falb.games.alcatraz.api.logic.GroupConnection;
 import at.falb.games.alcatraz.api.logic.Server;
 import at.falb.games.alcatraz.api.logic.ServerValues;
 import org.apache.log4j.LogManager;
@@ -13,12 +10,9 @@ import spread.SpreadGroup;
 
 import java.io.IOException;
 import java.net.InetAddress;
-import java.rmi.NotBoundException;
-import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.time.LocalDateTime;
-import java.util.Optional;
 
 public class ServerRun {
     private static final Logger LOG = LogManager.getLogger(ServerRun.class);
@@ -28,6 +22,7 @@ public class ServerRun {
     public static void main(String[] arg) throws IOException, SpreadException {
 
         serverCfg = JsonHandler.readServerJson(arg[0]);
+        serverCfg.setStartTimestamp(START_TIMESTAMP);
 
         SpreadConnection connection = new SpreadConnection();
         connection.connect(InetAddress.getByName(serverCfg.getSpreaderIp()),
@@ -44,28 +39,10 @@ public class ServerRun {
         registry.rebind(serverCfg.getName(), server);
 
         LOG.info("Start Timestamp: " + START_TIMESTAMP);
-
     }
 
     public static ServerCfg getServerCfg() {
         return serverCfg;
-    }
-
-    public static void sayHi() {
-        JsonHandler.getTheOtherServers(serverCfg).forEach(s -> {
-            final Optional<GroupConnection> optionalGroupConnection = SpreadMessageListener.getGroupConnectionList()
-                    .stream()
-                    .filter(gc -> gc.getId().equals(s.getName())).findAny();
-            if (optionalGroupConnection.isPresent()) {
-                try {
-                    Registry neighbor = LocateRegistry.getRegistry(s.getServerIp(), s.getRegistryPort());
-                    ServerInterface neighbourBinding = (ServerInterface) neighbor.lookup(s.getName());
-                    neighbourBinding.sayHello(serverCfg.getName(), START_TIMESTAMP);
-                } catch (RemoteException | NotBoundException e) {
-                    LOG.error(String.format("Cannot locate the %s ", s.getName()), e);
-                }
-            }
-        });
     }
 }
 

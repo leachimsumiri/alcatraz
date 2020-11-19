@@ -9,7 +9,6 @@ import spread.SpreadException;
 import spread.SpreadMessage;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class SpreadMessageSender {
 
@@ -35,5 +34,4 @@ public class SpreadMessageSender {
             e.printStackTrace();
         }
     }
-
 }
