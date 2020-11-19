@@ -29,7 +29,7 @@ public class ServerRun {
 
     public static void main(String[] arg) throws IOException, SpreadException {
 
-        serverCfg = YamlHandler.readYaml(arg[0]);
+        final ServerCfg serverCfg = JsonHandler.readServerJson(arg[0]);
 
         SpreadConnection connection = new SpreadConnection();
         connection.connect(InetAddress.getByName(serverCfg.getSpreaderIp()),
