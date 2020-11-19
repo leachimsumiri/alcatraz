@@ -7,6 +7,7 @@ import spread.SpreadMessage;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -55,11 +56,15 @@ public class Server extends UnicastRemoteObject implements ServerInterface, Adva
             connection.multicast(message);
             System.out.println("New Player!!");
             return PlayerID;
-        }
-        else{
+        } else {
             System.out.println("Max players reached!!");
             return -2;
         }
+    }
+
+    @Override
+    public void sayHello(String id, LocalDateTime startTimestamp) throws RemoteException {
+        // TODO: Wee need to select one Server implementation
     }
 
     @Override

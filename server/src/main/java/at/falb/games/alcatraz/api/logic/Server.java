@@ -1,21 +1,18 @@
 package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.Alcatraz;
-import at.falb.games.alcatraz.api.ClientInterface;
 import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.ServerInterface;
 import at.falb.games.alcatraz.api.group.communication.SpreadListener;
 import at.falb.games.alcatraz.api.group.communication.SpreadMessageSender;
-import at.falb.games.alcatraz.impl.Game;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import spread.AdvancedMessageListener;
 import spread.SpreadConnection;
 import spread.SpreadException;
-import spread.SpreadMessage;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -23,10 +20,10 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     private static final Logger LOG = LogManager.getLogger(Server.class);
     private Alcatraz game;
     private final List<GamePlayer> gamePlayerList = new ArrayList<>();
-    private SpreadConnection connection;
+    private final SpreadConnection connection;
     private int playerNumber;
     private SpreadListener spreadListener;
-    private SpreadMessageSender spreadMessageSender;
+    private final SpreadMessageSender spreadMessageSender;
 
     public Server() throws RemoteException {
         super();
@@ -65,6 +62,18 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         LOG.info("New Player!!");
         return size;*/
         return 0;
+    }
+
+    @Override
+    public void sayHello(String id, LocalDateTime startTimestamp) throws RemoteException {
+        // TODO: Wee need to select one Server implementation
+        SpreadListener.getGroupConnectionList().forEach(gc -> {
+            if (gc.getId().equals(id)) {
+                gc.setStartTimestamp(startTimestamp);
+            }
+        });
+        LOG.info("Updated registers:" + SpreadListener.getGroupConnectionList());
+        LOG.info("Main register server: " + SpreadListener.getMainRegistryServer());
     }
 
 }

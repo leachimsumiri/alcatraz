@@ -38,4 +38,9 @@ public class YamlHandler {
         YamlHandler.serverCfgList.addAll(serverCfgList);
         return serverCfg;
     }
+
+    // TODO: This will be removed with the new implementation in develop
+    public static List<ServerCfg> getServerCfgList() {
+        return serverCfgList;
+    }
 }

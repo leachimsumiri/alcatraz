@@ -3,7 +3,6 @@ package at.falb.games.alcatraz.api.group.communication;
 import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.ServerRun;
 import at.falb.games.alcatraz.api.logic.GroupConnection;
-import at.falb.games.alcatraz.api.logic.Server;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.AdvancedMessageListener;
@@ -11,18 +10,34 @@ import spread.SpreadException;
 import spread.SpreadGroup;
 import spread.SpreadMessage;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.List;
+import java.util.TreeSet;
 
 public class SpreadListener implements AdvancedMessageListener {
 
     private static final Logger LOG = LogManager.getLogger(SpreadListener.class);
 
-    private List<GroupConnection> groupConnectionList = new ArrayList<>();
+    private static TreeSet<GroupConnection> groupConnectionList = new TreeSet<>();
 
-    public List<GroupConnection> getGroupConnectionList() {
+    public static TreeSet<GroupConnection> getGroupConnectionList() {
         return groupConnectionList;
+    }
+
+    /**
+     * Dummy Sorting, since the sorted TreeSet isn't sorting it self
+     * @return the oldest GroupConnection
+     */
+    public static GroupConnection getMainRegistryServer() {
+        GroupConnection oldestGC = null;
+        for (GroupConnection gc : groupConnectionList) {
+            if (oldestGC == null || oldestGC.compareTo(gc) > 0) {
+                oldestGC = gc;
+            }
+        }
+        return oldestGC;
     }
 
     @Override
@@ -32,8 +47,8 @@ public class SpreadListener implements AdvancedMessageListener {
             LOG.info("Message from: " + spreadMessage.getSender() + "\nMessage: " + spreadMessage.getObject().toString());
             ArrayList<GamePlayer> gamePlayerArrayList = (ArrayList<GamePlayer>) spreadMessage.getObject();
 
-            for(GamePlayer gamePlayer : gamePlayerArrayList) {
-                LOG.info("Gameplayer: "+ gamePlayer.getIp() + " Name: " + gamePlayer.getName());
+            for (GamePlayer gamePlayer : gamePlayerArrayList) {
+                LOG.info("Gameplayer: " + gamePlayer.getIp() + " Name: " + gamePlayer.getName());
             }
 
         } catch (SpreadException e) {
@@ -44,19 +59,22 @@ public class SpreadListener implements AdvancedMessageListener {
 
     @Override
     public void membershipMessageReceived(SpreadMessage spreadMessage) {
-          //LOG.debug("Membership message: " + spreadMessage.getMembershipInfo());
-          //LOG.debug("Message from Name: " + spreadMessage.getMembershipInfo().getMembers());
-        ArrayList<GroupConnection> currentGroupConnections = new ArrayList<>();
+        groupConnectionList = new TreeSet<>();
 
-        spreadMessage.getMembershipInfo().getMembers();
-        for (SpreadGroup sg: spreadMessage.getMembershipInfo().getMembers()) {
-            currentGroupConnections.add(createGroupConnection(sg.toString()));
-        }
-        updateGroupView(currentGroupConnections);
-
-        LOG.info("Current Group View:");
-        for (GroupConnection gc : groupConnectionList) {
-            LOG.info(gc.getId() + " " + gc.getHostname());
+        Arrays.stream(spreadMessage.getMembershipInfo().getMembers())
+                .map(this::createGroupConnection)
+                .forEachOrdered(groupConnectionList::add);
+        LOG.info(String.format("Current Group View: %s", groupConnectionList));
+        if (getGroupConnectionList().size() > 1) {
+            try {
+                // Wait a second, otherwise this server will get a connection refused
+                Thread.sleep(1000);
+                ServerRun.sayHi();
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+        } else {
+            LOG.info("Main register server: " + SpreadListener.getMainRegistryServer());
         }
 
         /*if(spreadMessage.getMembershipInfo().isRegularMembership()) {
@@ -98,12 +116,11 @@ public class SpreadListener implements AdvancedMessageListener {
         groupConnectionList.remove(groupConnection);
     }
 
-    public GroupConnection createGroupConnection(String groupConnectionString) {
-        //LOG.debug("create GroupConneciton");
-        //LOG.debug(groupConnectionString);
-
-        String[] splited = groupConnectionString.split("#");
-
-        return new GroupConnection(splited[1], splited[2]);
+    public GroupConnection createGroupConnection(SpreadGroup spreadGroup) {
+        String[] splited = spreadGroup.toString().split("#");
+        LocalDateTime startTimestamp = ServerRun.getServerCfg().getName().equals(splited[1]) ?
+                ServerRun.START_TIMESTAMP :
+                LocalDateTime.now();
+        return new GroupConnection(splited[1], splited[2], startTimestamp);
     }
 }
