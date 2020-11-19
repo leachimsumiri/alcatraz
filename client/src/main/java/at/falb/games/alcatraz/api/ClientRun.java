@@ -8,7 +8,7 @@ import java.rmi.NotBoundException;
 import java.rmi.registry.LocateRegistry;
 import java.time.LocalDateTime;
 
-public class Start {
+public class ClientRun {
     public static final LocalDateTime START_TIMESTAMP = LocalDateTime.now();
     private static ClientCfg clientCfg;
 
