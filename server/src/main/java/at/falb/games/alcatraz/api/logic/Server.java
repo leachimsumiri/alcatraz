@@ -64,7 +64,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         return thisServer.serverCfg;
     }
 
-    public static void addToActualServersList(ServerCfg serverCfg) {
+    public static void updateActualServersList(ServerCfg serverCfg) {
         final int i = actualServersList.indexOf(serverCfg);
         assert i < 0 : "This should not happen, the server should exist";
         actualServersList.set(i, serverCfg);

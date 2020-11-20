@@ -35,7 +35,7 @@ public class SpreadMessageListener implements AdvancedMessageListener {
                     }
                 }
             } else if (spreadMessageObject instanceof ServerCfg) {
-                Server.addToActualServersList((ServerCfg) spreadMessageObject);
+                Server.updateActualServersList((ServerCfg) spreadMessageObject);
             } else {
                 throw new Exception("This object type is unknown: " + spreadMessageObject.getClass().getSimpleName());
             }
