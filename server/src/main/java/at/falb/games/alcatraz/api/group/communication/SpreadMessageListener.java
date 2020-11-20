@@ -58,7 +58,7 @@ public class SpreadMessageListener implements AdvancedMessageListener {
                 .map(this::createServerCfg)
                 .forEachOrdered(Server.getActualServersList()::add);
 
-        Server.announceThisServerToGroup();
+        Server.announceToGroup(Server.getServerCfg());
         LOG.info(String.format("Current Group View: %s", Server.getActualServersList()));
     }
 

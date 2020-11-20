@@ -14,6 +14,7 @@ import spread.SpreadException;
 import spread.SpreadGroup;
 import spread.SpreadMessage;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
@@ -45,10 +46,10 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         connection.add(this.spreadMessageListener);
     }
 
-    public static void announceThisServerToGroup() {
+    public static <M extends Serializable> void announceToGroup(M messageObject) {
         try {
             SpreadMessage message = new SpreadMessage();
-            message.setObject(thisServer.serverCfg);
+            message.setObject(messageObject);
             message.addGroup(ServerValues.REPLICAS_GROUP_NAME);
             message.setReliable();
             message.setSelfDiscard(true);
