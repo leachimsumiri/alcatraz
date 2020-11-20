@@ -2,11 +2,10 @@ package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.GamePlayer;
-import at.falb.games.alcatraz.api.ServerCfg;
-import at.falb.games.alcatraz.api.ServerClientUtility;
+import at.falb.games.alcatraz.api.utilities.ServerCfg;
+import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import at.falb.games.alcatraz.api.ServerInterface;
 import at.falb.games.alcatraz.api.group.communication.SpreadMessageListener;
-import at.falb.games.alcatraz.api.group.communication.SpreadMessageSender;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.SpreadConnection;
@@ -34,7 +33,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     private final ServerCfg serverCfg;
     private int playerNumber;
     private final SpreadMessageListener spreadMessageListener;
-    private final SpreadMessageSender spreadMessageSender;
     private static final List<ServerCfg> actualServersList = new ArrayList<>();
 
     private Server(SpreadConnection connection, ServerCfg serverCfg) throws RemoteException {
@@ -42,7 +40,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         this.serverCfg = serverCfg;
         this.connection = connection;
         this.spreadMessageListener = new SpreadMessageListener();
-        this.spreadMessageSender = new SpreadMessageSender(connection);
         connection.add(this.spreadMessageListener);
     }
 

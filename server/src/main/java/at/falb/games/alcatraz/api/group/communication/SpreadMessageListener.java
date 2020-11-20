@@ -1,7 +1,7 @@
 package at.falb.games.alcatraz.api.group.communication;
 
 import at.falb.games.alcatraz.api.GamePlayer;
-import at.falb.games.alcatraz.api.ServerCfg;
+import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.logic.Server;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.LogManager;

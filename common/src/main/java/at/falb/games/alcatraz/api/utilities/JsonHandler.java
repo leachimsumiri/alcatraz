@@ -1,4 +1,4 @@
-package at.falb.games.alcatraz.api;
+package at.falb.games.alcatraz.api.utilities;
 
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -32,10 +32,9 @@ public class JsonHandler {
         return optionalServer.get();
     }
 
-    public static ClientCfg readClientJson(String clientName, String serverName) throws IOException {
+    public static ClientCfg readClientJson(String clientName) throws IOException {
         final TypeReference<List<ClientCfg>> mapTypeReference = new TypeReference<>() {
         };
-        final ServerCfg serverCfg = readServerJson(serverName);
         final List<ClientCfg> clientCfgList = jsonToObject("client.json", mapTypeReference);
         final Optional<ClientCfg> optionalClient = clientCfgList
                 .stream()
@@ -45,7 +44,6 @@ public class JsonHandler {
 
         ServerClientUtility.getClientCfgList().addAll(clientCfgList);
         final ClientCfg clientCfg = optionalClient.get();
-        clientCfg.setServerCfg(serverCfg);
         return clientCfg;
     }
 

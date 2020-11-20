@@ -1,5 +1,6 @@
 package at.falb.games.alcatraz.api;
 
+import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import spread.SpreadException;
 
 import java.rmi.Remote;

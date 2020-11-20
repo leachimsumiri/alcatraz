@@ -1,4 +1,4 @@
-package at.falb.games.alcatraz.api;
+package at.falb.games.alcatraz.api.utilities;
 
 import java.io.Serializable;
 import java.time.LocalDateTime;
@@ -8,7 +8,6 @@ public class ClientCfg implements Serializable {
     private String name;
     private String ip;
     private int port;
-    private ServerCfg serverCfg;
     private LocalDateTime startTimestamp;
 
     public String getName() {
@@ -33,14 +32,6 @@ public class ClientCfg implements Serializable {
 
     public void setPort(int port) {
         this.port = port;
-    }
-
-    public ServerCfg getServerCfg() {
-        return serverCfg;
-    }
-
-    public void setServerCfg(ServerCfg serverCfg) {
-        this.serverCfg = serverCfg;
     }
 
     public LocalDateTime getStartTimestamp() {
@@ -70,7 +61,6 @@ public class ClientCfg implements Serializable {
                 "name='" + name + '\'' +
                 ", ip='" + ip + '\'' +
                 ", port=" + port +
-                ", serverCfg=" + serverCfg +
                 ", startTimestamp=" + startTimestamp +
                 '}';
     }

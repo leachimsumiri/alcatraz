@@ -1,4 +1,4 @@
-package at.falb.games.alcatraz.api;
+package at.falb.games.alcatraz.api.utilities;
 
 import java.util.ArrayList;
 import java.util.List;
