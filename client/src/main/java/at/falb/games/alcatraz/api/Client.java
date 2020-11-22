@@ -1,5 +1,7 @@
 package at.falb.games.alcatraz.api;
 
+import at.falb.games.alcatraz.api.logic.GameMoveListener;
+
 import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;

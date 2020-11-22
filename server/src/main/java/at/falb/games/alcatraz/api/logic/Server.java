@@ -1,7 +1,9 @@
 package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.Alcatraz;
+import at.falb.games.alcatraz.api.ClientInterface;
 import at.falb.games.alcatraz.api.GamePlayer;
+import at.falb.games.alcatraz.api.utilities.ClientCfg;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import at.falb.games.alcatraz.api.ServerInterface;
@@ -28,6 +30,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     private static final Logger LOG = LogManager.getLogger(Server.class);
     private Alcatraz game;
     private final List<GamePlayer> gamePlayerList = new ArrayList<>();
+    private final List<ClientInterface> ClientList = new ArrayList<>();
     private final SpreadConnection connection;
     private static Server thisServer;
     private final ServerCfg serverCfg;
@@ -90,8 +93,36 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     @Override
-    public int register(GamePlayer gamePlayer) {
-        return 0;
+    public int register(ClientInterface client) throws RemoteException, SpreadException {
+        int PlayerID =0;
+        //if (this.PlayerList.contains(client.getPlayer())){  // To avoid the dopple register from the same client (player)
+        //if (this.ClientList.contains(client)){  // To avoid the dopple register from the same client (player)
+        //    System.out.println("Client already exists!!");
+        //    return client.getPlayer().getId();
+        //}
+            if (this.playerNumber < 4){
+            for (GamePlayer P : this.gamePlayerList ){
+                if (P.getName().equals(client.getPlayer().getName())){  // To avoid names similarity
+                    System.out.println("Player name already taken!!");
+                    return -1;
+                }
+            }
+            PlayerID = this.playerNumber ;   // the new playerID becomes the the number of already existing players
+            this.gamePlayerList.add(client.getPlayer());
+            //this.ClientList.add(client);
+            this.playerNumber++;
+            SpreadMessage message = new SpreadMessage();
+            message.setObject(this.playerNumber);
+            message.addGroup("ReplicasGroup");  /////////////////////////////////////////
+            message.setReliable();
+            connection.multicast(message);
+            System.out.println("New Player!!");
+            return PlayerID;
+        }
+            else{
+            System.out.println("Max players reached!!");
+            return -2;
+        }
     }
 
     @Override
@@ -109,5 +140,18 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         final ServerCfg mainRegistryServer = ServerClientUtility.getMainRegistryServer(getActiveServers());
         LOG.info("Main register server: " + mainRegistryServer);
         return mainRegistryServer;
+    }
+
+    @Override
+    public void beginGame() {
+        if(playerNumber >= 2) {
+            this.ClientList.forEach(clientInterface -> {
+                try {
+                    clientInterface.startGame(this.gamePlayerList);
+                } catch (RemoteException e) {
+                    e.printStackTrace();
+                }
+            });
+        }
     }
 }
