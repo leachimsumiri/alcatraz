@@ -2,6 +2,7 @@ package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.GamePlayer;
+import at.falb.games.alcatraz.api.utilities.CommonValues;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import at.falb.games.alcatraz.api.ServerInterface;
@@ -27,7 +28,7 @@ import java.util.stream.Collectors;
 public class Server extends UnicastRemoteObject implements ServerInterface {
     private static final Logger LOG = LogManager.getLogger(Server.class);
     private Alcatraz game;
-    private final List<GamePlayer> gamePlayerList = new ArrayList<>();
+    private  ArrayList<GamePlayer> gamePlayerList = new ArrayList<>();
     private final SpreadConnection connection;
     private static Server thisServer;
     private final ServerCfg serverCfg;
@@ -89,9 +90,68 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         return thisServer;
     }
 
+    public static void updateGamePlayerList(ArrayList<GamePlayer> gamePlayerList){
+        thisServer.gamePlayerList = gamePlayerList;
+    }
+
     @Override
     public int register(GamePlayer gamePlayer) {
-        return 0;
+        String errorMessage;
+       if(thisServer.serverCfg != thisServer.getMainRegistryServer()){
+           errorMessage = "I'm not the primary..Sorry :)";
+           LOG.error(errorMessage);
+           return CommonValues.SERVER_NOT_PRIMARY;
+       }
+
+        if (thisServer.gamePlayerList.size() > ServerValues.MAX_PLAYERS) {
+            errorMessage = "Max players reached!!";
+            LOG.error(errorMessage);
+            return CommonValues.PLAYER_MAX_REACHED;
+        }
+
+        for (GamePlayer P : thisServer.gamePlayerList) {
+            if (P.getName().equals(gamePlayer.getName())) {  // To avoid names similarity
+                errorMessage ="Name is already taken!!";
+                LOG.error(errorMessage);
+                return CommonValues.NAME_TAKEN;
+            }
+        }
+
+        int ID;
+        int listID;
+        int size = thisServer.gamePlayerList.size();
+        if( size > 0){
+           for (ID = 0 ; ID <4 ; ID++) {
+               for (listID = 0; listID < size; listID++) {
+                   if (thisServer.gamePlayerList.get(listID).getId() == ID) break;
+               }
+               if (listID >= size) break;
+           }
+           gamePlayer.setId(ID);
+        }
+        else{
+            gamePlayer.setId(thisServer.gamePlayerList.size());
+        }
+
+       thisServer.gamePlayerList.add(gamePlayer);
+
+        thisServer.announceToGroup(thisServer.gamePlayerList);
+        LOG.info("New Player!!");
+        return gamePlayer.getId();
+    }
+
+    @Override
+    public int deregister(GamePlayer gamePlayer) throws RemoteException, SpreadException {
+        String errorMessage;
+        if (thisServer.serverCfg != thisServer.getMainRegistryServer()) {
+            errorMessage = "I'm not the primary.. Sorry :)";
+            LOG.error(errorMessage);
+            return CommonValues.SERVER_NOT_PRIMARY;
+        }
+        thisServer.gamePlayerList.remove(gamePlayer);
+        thisServer.announceToGroup(thisServer.gamePlayerList);
+        LOG.info("Player removed!!");
+        return CommonValues.DEREGISTRATION_OK;
     }
 
     @Override
@@ -110,4 +170,5 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         LOG.info("Main register server: " + mainRegistryServer);
         return mainRegistryServer;
     }
+
 }

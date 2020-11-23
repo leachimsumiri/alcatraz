@@ -8,7 +8,8 @@ import java.rmi.RemoteException;
 import java.util.List;
 
 public interface ServerInterface extends Remote {
-    int register(GamePlayer player) throws RemoteException, SpreadException;
+    int register   (GamePlayer player) throws RemoteException, SpreadException;
+    int deregister (GamePlayer player) throws RemoteException, SpreadException;
 
     List<ServerCfg> getActiveServers() throws RemoteException;
 
