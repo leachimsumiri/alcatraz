@@ -12,6 +12,7 @@ import spread.SpreadMessage;
 
 import java.util.Arrays;
 import java.util.List;
+import java.util.ArrayList;
 
 public class SpreadMessageListener implements AdvancedMessageListener {
 
@@ -24,18 +25,19 @@ public class SpreadMessageListener implements AdvancedMessageListener {
             LOG.info("Received UpdateMessage:");
             LOG.info("Message from: " + spreadMessage.getSender());
             LOG.info("Message: " + spreadMessageObject.toString());
-            if (spreadMessageObject instanceof List<?>) {
-                List<?> listOfObjects = (List<?>) spreadMessageObject;
+            if (spreadMessageObject instanceof ArrayList<?>) {
+                ArrayList<?> listOfObjects = (ArrayList<?>) spreadMessageObject;
                 if (CollectionUtils.isNotEmpty(listOfObjects)) {
                     final Object genericObject = listOfObjects.get(0);
                     if (genericObject instanceof GamePlayer) {
-                        handleGamePlayerList((List<GamePlayer>) listOfObjects);
+                        handleGamePlayerList((ArrayList<GamePlayer>) listOfObjects);
                     } else {
                         throw new Exception("This object type is unknown: " + spreadMessageObject.getClass().getSimpleName());
                     }
                 }
             } else if (spreadMessageObject instanceof ServerCfg) {
                 Server.updateActualServersList((ServerCfg) spreadMessageObject);
+
             } else {
                 throw new Exception("This object type is unknown: " + spreadMessageObject.getClass().getSimpleName());
             }
@@ -44,7 +46,8 @@ public class SpreadMessageListener implements AdvancedMessageListener {
         }
     }
 
-    private void handleGamePlayerList(List<GamePlayer> gamePlayerList) {
+    private void handleGamePlayerList(ArrayList<GamePlayer> gamePlayerList) {
+        Server.updateGamePlayerList(gamePlayerList);
         for (GamePlayer gamePlayer : gamePlayerList) {
             LOG.info("Gameplayer: " + gamePlayer.getIp() + " Name: " + gamePlayer.getName());
         }
