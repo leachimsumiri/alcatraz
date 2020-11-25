@@ -6,10 +6,13 @@ import java.util.Objects;
 
 public class GamePlayer extends Player {
     private String ip;
-    private int port = -1;
+    private int port;
 
+    /**
+     * This will set the player with -1, since int cannot be null
+     */
     public GamePlayer() {
-        this(0);
+        this(-1);
     }
 
     public GamePlayer(String name) {

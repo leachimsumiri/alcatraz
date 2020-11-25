@@ -156,14 +156,35 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
             LOG.error(errorMessage);
             throw new GamePlayerException(errorMessage);
         }
-
-        int lastGamePlayerId = size < 1 ? 1 : gamePlayerList.get(size - 1).getId() + 1;
-        gamePlayer.setId(lastGamePlayerId);
-        gamePlayerList.add(gamePlayer);
-
+        int freePort = getFreePort(gamePlayer);
         announceToGroup((Serializable) gamePlayerList);
-        LOG.info("Player registered!!");
-        return lastGamePlayerId;
+        LOG.info(String.format("Player %d registered!!", freePort));
+        return freePort;
+    }
+
+    /**
+     * Just like the ports in the Nintendo 64, if a port is free, this user will get it
+     * @param gamePlayer an instance of {@link GamePlayer}
+     * @return an id between 0 and 3
+     */
+    private int getFreePort(GamePlayer gamePlayer) {
+        int freePort = -1;
+        gamePlayer.setId(freePort);// to make sure, that the user will not pass a player with an id already
+        gamePlayerList.add(gamePlayer);
+        for (int i = 0; i < gamePlayerList.size(); i++) {
+            int finalI = i;// This is from intellij, i wanted this filter(gp -> gp.getId() == i)
+            final Optional<GamePlayer> gamePlayerOptional = gamePlayerList
+                    .stream()
+                    .filter(gp -> gp.getId() == finalI)
+                    .findAny();
+            if (gamePlayerOptional.isEmpty()) {
+                freePort = i;
+                break;
+            }
+        }
+        gamePlayer.setId(freePort);
+        gamePlayerList.set(freePort, gamePlayer);
+        return freePort;
     }
 
     private void checkForNullAndEmptyName(GamePlayer gamePlayer) throws GamePlayerException {
@@ -194,7 +215,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         }
         gamePlayerList.remove(gamePlayer);
         announceToGroup((Serializable) gamePlayerList);
-        LOG.info("Player removed!!");
+        LOG.info(String.format("Player %d removed!!", gamePlayer.getId()));
     }
 
     @Override
