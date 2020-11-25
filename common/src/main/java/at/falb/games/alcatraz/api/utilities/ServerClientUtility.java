@@ -1,7 +1,9 @@
 package at.falb.games.alcatraz.api.utilities;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class ServerClientUtility {
@@ -35,12 +37,11 @@ public class ServerClientUtility {
      * @return the server or null if any has a {@link ServerCfg#getStartTimestamp()}
      */
     public static ServerCfg getMainRegistryServer(List<ServerCfg> serverCfgList) {
-        ServerCfg oldestGC = null;
-        for (ServerCfg gc : serverCfgList) {
-            if (gc.getStartTimestamp() != null && (oldestGC == null || oldestGC.getStartTimestamp().compareTo(gc.getStartTimestamp()) > 0)) {
-                oldestGC = gc;
-            }
-        }
-        return oldestGC;
+        final Optional<ServerCfg> optionalServerCfg = serverCfgList
+                .stream()
+                .filter(s -> s.getStartTimestamp() != null)
+                .min(Comparator.comparing(ServerCfg::getStartTimestamp));
+        assert optionalServerCfg.isPresent();
+        return optionalServerCfg.get();
     }
 }

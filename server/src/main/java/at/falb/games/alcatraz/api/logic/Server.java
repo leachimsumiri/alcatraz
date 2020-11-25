@@ -1,12 +1,12 @@
 package at.falb.games.alcatraz.api.logic;
 
-import at.falb.games.alcatraz.api.Alcatraz;
-import at.falb.games.alcatraz.api.ClientInterface;
 import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import at.falb.games.alcatraz.api.ServerInterface;
+import at.falb.games.alcatraz.api.exceptions.GamePlayerException;
 import at.falb.games.alcatraz.api.group.communication.SpreadMessageListener;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.SpreadConnection;
@@ -23,39 +23,44 @@ import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 public class Server extends UnicastRemoteObject implements ServerInterface {
     private static final Logger LOG = LogManager.getLogger(Server.class);
-    private Alcatraz game;
-    private  ArrayList<GamePlayer> gamePlayerList = new ArrayList<>();
-    private final List<ClientInterface> ClientList = new ArrayList<>();
+
+    private List<GamePlayer> gamePlayerList = new ArrayList<>();
     private final SpreadConnection connection;
     private static Server thisServer;
     private final ServerCfg serverCfg;
-    private int playerNumber;
     private final SpreadMessageListener spreadMessageListener;
     private static final List<ServerCfg> actualServersList = new ArrayList<>();
 
     private Server(SpreadConnection connection, ServerCfg serverCfg) throws RemoteException {
-        super();
         this.serverCfg = serverCfg;
         this.connection = connection;
         this.spreadMessageListener = new SpreadMessageListener();
         connection.add(this.spreadMessageListener);
     }
 
-    public static <M extends Serializable> void announceToGroup(M messageObject) {
-        try {
-            SpreadMessage message = new SpreadMessage();
-            message.setObject(messageObject);
-            message.addGroup(ServerValues.REPLICAS_GROUP_NAME);
-            message.setReliable();
-            message.setSelfDiscard(true);
-            thisServer.connection.multicast(message);
-        } catch (SpreadException e) {
-            LOG.error("The Server information could not be spread", e);
-        }
+    /**
+     * It will announce the group any change.
+     * <ul>
+     *     <li>A new server joined this spread group</li>
+     *     <li>The server left this spread group</li>
+     *     <li>The gameplayer register or deregister</li>
+     * </ul>
+     * @param messageObject
+     * @param <M>
+     * @throws SpreadException
+     */
+    public static <M extends Serializable> void announceToGroup(M messageObject) throws SpreadException {
+        SpreadMessage message = new SpreadMessage();
+        message.setObject(messageObject);
+        message.addGroup(ServerValues.REPLICAS_GROUP_NAME);
+        message.setReliable();
+        message.setSelfDiscard(true);
+        thisServer.connection.multicast(message);
     }
 
     public static List<ServerCfg> getActualServersList() {
@@ -67,8 +72,16 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     public static void updateActualServersList(ServerCfg serverCfg) {
-        final int i = actualServersList.indexOf(serverCfg);
-        assert i < 0 : "This should not happen, the server should exist";
+        // Added this because the indexof, wasn't finding the server
+        final Optional<ServerCfg> optionalServerCfg = actualServersList
+                .stream()
+                .filter(s -> s.equals(serverCfg))
+                .findAny();
+
+        assert optionalServerCfg.isPresent() : "This should not happen, the server should exist";
+
+        final int i = actualServersList.indexOf(optionalServerCfg.get());
+
         actualServersList.set(i, serverCfg);
         thisServer.getActiveServers();
         thisServer.getMainRegistryServer();
@@ -76,7 +89,24 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
     public static Server build(ServerCfg serverCfg) throws RemoteException, UnknownHostException, SpreadException {
         if (thisServer == null) {
-            final SpreadConnection connection = new SpreadConnection();
+            build(serverCfg, new SpreadConnection());
+            Registry registry = LocateRegistry.createRegistry(serverCfg.getRegistryPort());
+            registry.rebind(serverCfg.getName(), thisServer);
+        }
+        return thisServer;
+    }
+
+    /**
+     * It is needed for testing
+     * @param serverCfg a normal server configuration
+     * @param connection a mocked SpreadConnection
+     * @return
+     * @throws RemoteException
+     * @throws UnknownHostException
+     * @throws SpreadException
+     */
+    public static Server build(ServerCfg serverCfg, SpreadConnection connection) throws RemoteException, UnknownHostException, SpreadException {
+        if (thisServer == null) {
             connection.connect(InetAddress.getByName(serverCfg.getSpreaderIp()),
                     serverCfg.getSpreaderPort(),
                     serverCfg.getName(),
@@ -85,19 +115,86 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
             SpreadGroup group = new SpreadGroup();
             group.join(connection, ServerValues.REPLICAS_GROUP_NAME);
             thisServer = new Server(connection, serverCfg);
-            Registry registry = LocateRegistry.createRegistry(serverCfg.getRegistryPort());
-            registry.rebind(serverCfg.getName(), thisServer);
         }
         return thisServer;
     }
 
-    public static void updateGamePlayerList(ArrayList<GamePlayer> gamePlayerList){
+    public static void updateGamePlayerList(List<GamePlayer> gamePlayerList) {
         thisServer.gamePlayerList = gamePlayerList;
+        LOG.info(gamePlayerList);
+    }
+
+    public List<GamePlayer> getGamePlayerList() {
+        return gamePlayerList;
+    }
+
+    /**
+     * This is used only for testing
+     * @param thisServer
+     */
+    public static void setThisServer(Server thisServer) {
+        Server.thisServer = thisServer;
     }
 
     @Override
-    public int register(GamePlayer gamePlayer) {
-        return 0;
+    public int register(GamePlayer gamePlayer) throws SpreadException, GamePlayerException {
+        checkForNullAndEmptyName(gamePlayer);
+        String errorMessage;
+
+        final int size = gamePlayerList.size();
+        if (size >= ServerValues.MAX_PLAYERS) {
+            errorMessage = "Max players reached!!";
+            LOG.error(errorMessage);
+            throw new GamePlayerException(errorMessage);
+        }
+
+        final Optional<GamePlayer> optionalGamePlayer = gamePlayerList.stream()
+                .filter(gp -> gp.getName().equals(gamePlayer.getName()))
+                .findAny();
+        if (optionalGamePlayer.isPresent()) {
+            errorMessage = "Name is already taken!!";
+            LOG.error(errorMessage);
+            throw new GamePlayerException(errorMessage);
+        }
+
+        int lastGamePlayerId = size < 1 ? 1 : gamePlayerList.get(size - 1).getId() + 1;
+        gamePlayer.setId(lastGamePlayerId);
+        gamePlayerList.add(gamePlayer);
+
+        announceToGroup((Serializable) gamePlayerList);
+        LOG.info("Player registered!!");
+        return lastGamePlayerId;
+    }
+
+    private void checkForNullAndEmptyName(GamePlayer gamePlayer) throws GamePlayerException {
+        String errorMessage;
+        if (gamePlayer == null) {
+            errorMessage = "A null object was sent!!";
+            LOG.error(errorMessage);
+            throw new GamePlayerException(errorMessage);
+        }
+
+        if (StringUtils.isBlank(gamePlayer.getName())) {
+            errorMessage = "The name is empty!!";
+            LOG.error(errorMessage);
+            throw new GamePlayerException(errorMessage);
+        }
+    }
+
+    @Override
+    public void deregister(GamePlayer gamePlayer) throws SpreadException, GamePlayerException {
+        checkForNullAndEmptyName(gamePlayer);
+        final Optional<GamePlayer> optionalGamePlayer = gamePlayerList.stream()
+                .filter(gp -> gp.getName().equals(gamePlayer.getName()))
+                .findAny();
+        if (optionalGamePlayer.isEmpty()) {
+            String errorMessage = "GamePlayer doesn't exist!!";
+            LOG.error(errorMessage);
+            throw new GamePlayerException(errorMessage);
+        }
+        gamePlayerList.remove(gamePlayer);
+        announceToGroup((Serializable) gamePlayerList);
+        LOG.info("Player removed!!");
     }
 
     @Override
