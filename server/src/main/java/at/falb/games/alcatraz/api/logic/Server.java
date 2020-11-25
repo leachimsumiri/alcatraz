@@ -235,5 +235,4 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         LOG.info("Main register server: " + mainRegistryServer);
         return mainRegistryServer;
     }
-
 }

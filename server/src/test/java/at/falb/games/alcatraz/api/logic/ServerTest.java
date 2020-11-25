@@ -17,6 +17,7 @@ import spread.SpreadMessage;
 
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
+import java.util.List;
 import java.util.stream.Stream;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -148,5 +149,37 @@ class ServerTest {
         final int actualId = server.register(new GamePlayer("game" + id));
 
         assertEquals(id, actualId);
+    }
+
+    @Test
+    void getActiveServers() {
+        Server.getActualServersList().add(serverCfg);
+        Server.getActualServersList().add(new ServerCfg("server"));
+
+        List<ServerCfg> activeServers = server.getActiveServers();
+
+        assertEquals(2, activeServers.size());
+
+        Server.getActualServersList().remove(serverCfg);
+
+        activeServers = server.getActiveServers();
+
+        assertEquals(1, activeServers.size());
+    }
+
+    @Test
+    void getMainServers() {
+        Server.getActualServersList().add(serverCfg);
+        Server.getActualServersList().add(new ServerCfg("server"));
+
+        ServerCfg activeServers = server.getMainRegistryServer();
+
+        assertEquals(serverCfg.getStartTimestamp(), activeServers.getStartTimestamp());
+
+        Server.getActualServersList().remove(serverCfg);
+
+        activeServers = server.getMainRegistryServer();
+
+        assertEquals(Server.getActualServersList().get(0).getStartTimestamp(), activeServers.getStartTimestamp());
     }
 }
