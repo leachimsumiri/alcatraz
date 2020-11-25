@@ -18,6 +18,7 @@ public class ServerCfg implements Serializable {
     }
 
     public ServerCfg(String name) {
+        this();
         this.name = name;
     }
 
