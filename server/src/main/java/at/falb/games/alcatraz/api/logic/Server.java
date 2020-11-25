@@ -31,6 +31,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
     private List<GamePlayer> gamePlayerList = new ArrayList<>();
     private final SpreadConnection connection;
+
     private static Server thisServer;
     private final ServerCfg serverCfg;
     private final SpreadMessageListener spreadMessageListener;
