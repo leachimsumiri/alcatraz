@@ -1,18 +1,18 @@
 package at.falb.games.alcatraz.api.group.communication;
 
 import at.falb.games.alcatraz.api.GamePlayer;
-import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.logic.Server;
+import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.AdvancedMessageListener;
+import spread.SpreadException;
 import spread.SpreadGroup;
 import spread.SpreadMessage;
 
 import java.util.Arrays;
 import java.util.List;
-import java.util.ArrayList;
 
 public class SpreadMessageListener implements AdvancedMessageListener {
 
@@ -25,12 +25,12 @@ public class SpreadMessageListener implements AdvancedMessageListener {
             LOG.info("Received UpdateMessage:");
             LOG.info("Message from: " + spreadMessage.getSender());
             LOG.info("Message: " + spreadMessageObject.toString());
-            if (spreadMessageObject instanceof ArrayList<?>) {
-                ArrayList<?> listOfObjects = (ArrayList<?>) spreadMessageObject;
+            if (spreadMessageObject instanceof List<?>) {
+                List<?> listOfObjects = (List<?>) spreadMessageObject;
                 if (CollectionUtils.isNotEmpty(listOfObjects)) {
                     final Object genericObject = listOfObjects.get(0);
                     if (genericObject instanceof GamePlayer) {
-                        handleGamePlayerList((ArrayList<GamePlayer>) listOfObjects);
+                        Server.updateGamePlayerList((List<GamePlayer>) listOfObjects);
                     } else {
                         throw new Exception("This object type is unknown: " + spreadMessageObject.getClass().getSimpleName());
                     }
@@ -46,13 +46,6 @@ public class SpreadMessageListener implements AdvancedMessageListener {
         }
     }
 
-    private void handleGamePlayerList(ArrayList<GamePlayer> gamePlayerList) {
-        Server.updateGamePlayerList(gamePlayerList);
-        for (GamePlayer gamePlayer : gamePlayerList) {
-            LOG.info("Gameplayer: " + gamePlayer.getIp() + " Name: " + gamePlayer.getName());
-        }
-    }
-
     @Override
     public void membershipMessageReceived(SpreadMessage spreadMessage) {
         Server.getActualServersList().clear();
@@ -61,8 +54,12 @@ public class SpreadMessageListener implements AdvancedMessageListener {
                 .map(this::createServerCfg)
                 .forEachOrdered(Server.getActualServersList()::add);
 
-        Server.announceToGroup(Server.getServerCfg());
-        LOG.info(String.format("Current Group View: %s", Server.getActualServersList()));
+        try {
+            Server.announceToGroup(Server.getServerCfg());
+            LOG.info(String.format("Current Group View: %s", Server.getActualServersList()));
+        } catch (SpreadException e) {
+            LOG.error("It wasn't possible to announce the group about that a new server is running", e);
+        }
     }
 
     private ServerCfg createServerCfg(SpreadGroup spreadGroup) {
