@@ -1,11 +1,11 @@
 package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.GamePlayer;
-import at.falb.games.alcatraz.api.utilities.ServerCfg;
-import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import at.falb.games.alcatraz.api.ServerInterface;
 import at.falb.games.alcatraz.api.exceptions.GamePlayerException;
 import at.falb.games.alcatraz.api.group.communication.SpreadMessageListener;
+import at.falb.games.alcatraz.api.utilities.ServerCfg;
+import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
@@ -237,14 +237,8 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
     @Override
     public void beginGame() {
-        if(playerNumber >= 2) {
-            this.ClientList.forEach(clientInterface -> {
-                try {
-                    clientInterface.startGame(this.gamePlayerList);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            });
+        if (gamePlayerList.size() >= 2) {
+            // TODO: clientInterface.startGame(this.gamePlayerList);
         }
     }
 }
