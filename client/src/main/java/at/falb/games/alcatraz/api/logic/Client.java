@@ -1,6 +1,10 @@
-package at.falb.games.alcatraz.api;
+package at.falb.games.alcatraz.api.logic;
 
-import at.falb.games.alcatraz.api.logic.GameMoveListener;
+import at.falb.games.alcatraz.api.Alcatraz;
+import at.falb.games.alcatraz.api.ClientInterface;
+import at.falb.games.alcatraz.api.GamePlayer;
+import at.falb.games.alcatraz.api.MoveListener;
+import at.falb.games.alcatraz.api.ServerInterface;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -8,25 +12,28 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Client extends UnicastRemoteObject implements ClientInterface , Serializable {
+public class Client extends UnicastRemoteObject implements ClientInterface, Serializable {
 
-    private List<GamePlayer> GamePlayersList = new ArrayList<>();
-    private GamePlayer Player = new GamePlayer(0);
+    private List<GamePlayer> gamePlayersList = new ArrayList<>();
+    private GamePlayer Player = new GamePlayer();
+    //This is the list of servers, that will be updated every x seconds.
+    private final List<ServerInterface> serverList = new ArrayList<>();
+    // This Server is used for the first time
+    private ServerInterface mainRegistryServer;
 
-    public Client(String IP, int port) throws RemoteException{
-        super();
-        this.Player.setIP(IP); ;
-        this.Player.setPort(port);
+    protected Client() throws RemoteException {
     }
+    //
+
 
     @Override
     public List<GamePlayer> getGamePlayersList() throws RemoteException {
-        return GamePlayersList;
+        return gamePlayersList;
     }
 
     @Override
     public void setGamePlayersList(List<GamePlayer> gamePlayersList) throws RemoteException {
-        GamePlayersList = gamePlayersList;
+        this.gamePlayersList = gamePlayersList;
     }
 
     @Override
@@ -50,4 +57,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface , Ser
         game.showWindow();
         game.start();
     }
+
+
 }
