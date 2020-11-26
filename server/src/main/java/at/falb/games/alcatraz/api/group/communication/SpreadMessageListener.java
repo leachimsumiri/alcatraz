@@ -1,12 +1,13 @@
 package at.falb.games.alcatraz.api.group.communication;
 
 import at.falb.games.alcatraz.api.GamePlayer;
-import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.logic.Server;
+import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.AdvancedMessageListener;
+import spread.SpreadException;
 import spread.SpreadGroup;
 import spread.SpreadMessage;
 
@@ -29,24 +30,19 @@ public class SpreadMessageListener implements AdvancedMessageListener {
                 if (CollectionUtils.isNotEmpty(listOfObjects)) {
                     final Object genericObject = listOfObjects.get(0);
                     if (genericObject instanceof GamePlayer) {
-                        handleGamePlayerList((List<GamePlayer>) listOfObjects);
+                        Server.updateGamePlayerList((List<GamePlayer>) listOfObjects);
                     } else {
                         throw new Exception("This object type is unknown: " + spreadMessageObject.getClass().getSimpleName());
                     }
                 }
             } else if (spreadMessageObject instanceof ServerCfg) {
                 Server.updateActualServersList((ServerCfg) spreadMessageObject);
+
             } else {
                 throw new Exception("This object type is unknown: " + spreadMessageObject.getClass().getSimpleName());
             }
         } catch (Exception e) {
             LOG.info("Something went wrong", e);
-        }
-    }
-
-    private void handleGamePlayerList(List<GamePlayer> gamePlayerList) {
-        for (GamePlayer gamePlayer : gamePlayerList) {
-            LOG.info("Gameplayer: " + gamePlayer.getIp() + " Name: " + gamePlayer.getName());
         }
     }
 
@@ -58,8 +54,12 @@ public class SpreadMessageListener implements AdvancedMessageListener {
                 .map(this::createServerCfg)
                 .forEachOrdered(Server.getActualServersList()::add);
 
-        Server.announceToGroup(Server.getServerCfg());
-        LOG.info(String.format("Current Group View: %s", Server.getActualServersList()));
+        try {
+            Server.announceToGroup(Server.getServerCfg());
+            LOG.info(String.format("Current Group View: %s", Server.getActualServersList()));
+        } catch (SpreadException e) {
+            LOG.error("It wasn't possible to announce the group about that a new server is running", e);
+        }
     }
 
     private ServerCfg createServerCfg(SpreadGroup spreadGroup) {

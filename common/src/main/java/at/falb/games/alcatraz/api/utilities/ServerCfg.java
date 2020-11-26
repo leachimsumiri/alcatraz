@@ -14,9 +14,11 @@ public class ServerCfg implements Serializable {
     private LocalDateTime startTimestamp;
 
     public ServerCfg() {
+        startTimestamp = LocalDateTime.now();
     }
 
     public ServerCfg(String name) {
+        this();
         this.name = name;
     }
 
