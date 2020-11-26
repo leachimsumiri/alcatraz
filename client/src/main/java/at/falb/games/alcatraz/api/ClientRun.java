@@ -3,18 +3,16 @@ package at.falb.games.alcatraz.api;
 import at.falb.games.alcatraz.api.logic.Client;
 import at.falb.games.alcatraz.api.utilities.ClientValues;
 import at.falb.games.alcatraz.api.utilities.*;
-import at.falb.games.alcatraz.impl.Game;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import spread.SpreadException;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +32,7 @@ public class ClientRun {
         } catch (IOException e) {
             e.printStackTrace();
         }
+
         List<GamePlayer> playerList = new ArrayList<>();
         if (clientCfg.getName().equals("player1")) {
             GamePlayer player = new GamePlayer(1);
@@ -41,14 +40,46 @@ public class ClientRun {
             player.setIP("127.0.0.1");
             player.setPort(5102);
             playerList.add(player);
+            try {
+                ClientInterface clientO = (ClientInterface)Naming.lookup("rmi://127.0.0.1/player2");
+                Player playerO = new Player(0);
+                playerO.setName("test 23454657");
+                Prisoner prisoner = new Prisoner(0, 0, 0);
+                GameMove gameMove = new GameMove(0,0,0, prisoner);
+                clientO.move(playerO, gameMove);
+            } catch (NotBoundException | MalformedURLException | RemoteException e) {
+                e.printStackTrace();
+            }
+
+
         } else {
             GamePlayer player = new GamePlayer(0);
             player.setName("player1");
             player.setIP("127.0.0.1");
             player.setPort(5101);
             playerList.add(player);
+
+            ClientInterface client = null;
+            try {
+                GamePlayer thisPlayer = new GamePlayer(0);
+                thisPlayer.setName(clientCfg.getName());
+                thisPlayer.setPort(clientCfg.getPort());
+                thisPlayer.setIP(clientCfg.getIp());
+                client = new Client(thisPlayer);
+                LocateRegistry.createRegistry(1099);
+                String rmi_url = "rmi://localhost:1099/" + clientCfg.getName();
+                rmi_url = "rmi://127.0.0.1:1099/player2";
+                Naming.rebind(rmi_url, client);
+            } catch (RemoteException | MalformedURLException e) {
+                e.printStackTrace();
+            }
+
+
+
+                //client.startGame(playerList);
         }
 
+/*
         // Create RMI registry for this client
         ClientInterface client = null;
         try {
@@ -63,6 +94,8 @@ public class ClientRun {
         } catch (RemoteException | MalformedURLException e) {
             e.printStackTrace();
         }
+
+ */
         /*
         try {
             String serverName = args.length == 2 && StringUtils.isNotBlank(args[1]) ? args[1] : ClientValues.MAIN_SERVER;
@@ -121,7 +154,6 @@ public class ClientRun {
 
 
 
-
         //////////////////////////// Testing purposes
 
 
@@ -135,4 +167,15 @@ public class ClientRun {
         return clientCfg;
          */
     }
+
+    /*
+        // Create RMI registry for this client
+        ClientInterface client = new Client(clientCfg.getIp(), clientCfg.getPort());
+        Registry registry =  LocateRegistry.createRegistry(clientCfg.getPort());
+        registry.rebind(clientCfg.getName(), client);
+        System.out.println("First player client up and running");
+
+        List<GamePlayer> playerList = null;
+        client.startGame(playerList);
+         */
 }

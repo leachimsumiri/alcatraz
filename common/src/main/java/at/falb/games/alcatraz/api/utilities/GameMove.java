@@ -3,9 +3,10 @@ package at.falb.games.alcatraz.api.utilities;
 
 import at.falb.games.alcatraz.api.Prisoner;
 
+import java.io.Serializable;
 import java.util.Objects;
 
-public class GameMove {
+public class GameMove implements Serializable {
     private int column;
     private int row;
     private int rowOrCol;

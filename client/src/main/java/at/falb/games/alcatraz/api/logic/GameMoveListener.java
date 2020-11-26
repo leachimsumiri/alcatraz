@@ -22,8 +22,8 @@ public class GameMoveListener implements MoveListener {
         System.out.println("moving " + prisoner + " to " + (rowOrCol == Alcatraz.ROW ? "row" : "col") + " " + (rowOrCol == Alcatraz.ROW ? row : col));
         for (GamePlayer current_player : other_players) {
             try {
-                ClientInterface client = (ClientInterface) Naming.lookup("rmi://" + current_player.getIp() + "/" + current_player.getName());
-                client.move(player, new GameMove(col, row, rowOrCol, prisoner));
+                ClientInterface client = (ClientInterface)Naming.lookup("rmi://localhost/" + current_player.getName());
+                //client.move(player, new GameMove(col, row, rowOrCol, prisoner));
             } catch (NotBoundException e) {
                 e.printStackTrace();
             } catch (MalformedURLException e) {

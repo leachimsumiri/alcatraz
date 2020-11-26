@@ -43,13 +43,26 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 
     @Override
     public void move(Player player, GameMove gameMove) throws RemoteException {
+        System.out.println(player.getName());
+        System.out.println(gameMove.getRow());
+
+    }
+
+/*
+    @Override
+    public void move(Player player, GameMove gameMove) throws RemoteException {
+        System.out.println("Called Move!");
+
         try {
             this.game.doMove(player, gameMove.getPrisoner(), gameMove.getRowOrCol(), gameMove.getRow(),
                     gameMove.getColumn());
         } catch (IllegalMoveException e) {
             e.printStackTrace();
         }
+
     }
+
+ */
 
     @Override
     public void nextTurn(GamePlayer player) throws RemoteException {
