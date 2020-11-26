@@ -15,13 +15,13 @@ import java.util.List;
 public class Client extends UnicastRemoteObject implements ClientInterface, Serializable {
 
     private List<GamePlayer> gamePlayersList = new ArrayList<>();
-    private GamePlayer Player = new GamePlayer();
+    private GamePlayer gamePlayer = new GamePlayer();
     //This is the list of servers, that will be updated every x seconds.
     private final List<ServerInterface> serverList = new ArrayList<>();
     // This Server is used for the first time
     private ServerInterface mainRegistryServer;
 
-    protected Client() throws RemoteException {
+    public Client() throws RemoteException {
     }
     //
 
@@ -37,19 +37,19 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
     }
 
     @Override
-    public GamePlayer getPlayer() throws RemoteException {
-        return Player;
+    public GamePlayer getGamePlayer() throws RemoteException {
+        return gamePlayer;
     }
 
     @Override
-    public void setPlayer(GamePlayer player) throws RemoteException {
-        Player = player;
+    public void setGamePlayer(GamePlayer gamePlayer) throws RemoteException {
+        this.gamePlayer = gamePlayer;
     }
 
    @Override
     public void startGame(List<GamePlayer> playerList){
         Alcatraz game = new Alcatraz();
-        game.init(playerList.size(), this.Player.getId());
+       game.init(playerList.size(), this.gamePlayer.getId());
 
         MoveListener listener = new GameMoveListener(playerList);
         game.addMoveListener(listener);

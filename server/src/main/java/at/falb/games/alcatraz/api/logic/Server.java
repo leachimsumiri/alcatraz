@@ -6,6 +6,7 @@ import at.falb.games.alcatraz.api.ServerInterface;
 import at.falb.games.alcatraz.api.exceptions.BeginGameException;
 import at.falb.games.alcatraz.api.exceptions.GamePlayerException;
 import at.falb.games.alcatraz.api.group.communication.SpreadMessageListener;
+import at.falb.games.alcatraz.api.utilities.GameStatus;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.commons.lang3.StringUtils;
@@ -33,8 +34,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     private static final Logger LOG = LogManager.getLogger(Server.class);
 
     private List<GamePlayer> gamePlayerList = new ArrayList<>();
-    //To send requests to the clients
-    private final List<ClientInterface> clientInterfaceList = new ArrayList<>();
+    private GameStatus gameStatus = GameStatus.NOT_STARTED;
     private final SpreadConnection connection;
 
     private static Server thisServer;
@@ -130,35 +130,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         LOG.info(gamePlayerList);
     }
 
-    private static void locateRegistryAndLookupAndUnbind(GamePlayer gp, boolean toUnbind) {
-        try {
-            Registry registry = LocateRegistry.getRegistry(gp.getIp(), gp.getPort());
-            final Optional<ClientInterface> clientInterfaceOptional = thisServer.clientInterfaceList
-                    .stream()
-                    .filter(ci ->
-                            {
-                                try {
-                                    return ci.getPlayer().getName().equals(gp.getName());
-                                } catch (RemoteException e) {
-                                    LOG.error("A remote exception occur", e);
-                                }
-                                return false;
-                            }
-                    )
-                    .findAny();
-            if (toUnbind) {
-                registry.unbind(gp.getName());
-            } else if (clientInterfaceOptional.isPresent()) {
-                final int i = thisServer.clientInterfaceList.indexOf(clientInterfaceOptional.get());
-                thisServer.clientInterfaceList.set(i, (ClientInterface) registry.lookup(gp.getName()));
-            } else {
-                thisServer.clientInterfaceList.add((ClientInterface) registry.lookup(gp.getName()));
-            }
-        } catch (RemoteException | NotBoundException e) {
-            LOG.info("It wasn't possible to register or to bound the client the client", e);
-        }
-    }
-
     /**
      * This is used only for testing
      * @param thisServer
@@ -189,7 +160,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         }
         int freePort = getFreePort(gamePlayer);
         announceToGroup((Serializable) gamePlayerList);
-        locateRegistryAndLookupAndUnbind(gamePlayer, false);
         LOG.info(String.format("Player %d registered!!", freePort));
         return freePort;
     }
@@ -248,7 +218,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
         gamePlayerList.remove(gamePlayer);
         announceToGroup((Serializable) gamePlayerList);
-        locateRegistryAndLookupAndUnbind(gamePlayer, true);
         LOG.info(String.format("Player %d removed!!", gamePlayer.getId()));
     }
 
@@ -270,23 +239,30 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     @Override
-    public void beginGame() throws BeginGameException {
+    public void beginGame() throws BeginGameException, RemoteException, NotBoundException, SpreadException {
         if (gamePlayerList.size() < 2) {
             throw new BeginGameException("Not enough players are register");
         }
-        clientInterfaceList.forEach(ci -> {
-            String name = "";
-            try {
-                name = ci.getPlayer().getName();
-                ci.startGame(gamePlayerList);
-            } catch (RemoteException e) {
-                LOG.error(String.format("It wasn't possible to connect with client %s", name), e);
-            }
-        });
+
+        for (GamePlayer gamePlayer : gamePlayerList) {
+            final ClientInterface clientInterface = ServerClientUtility.locateRegistryAndLookup(gamePlayer);
+            clientInterface.startGame(gamePlayerList);
+        }
+        gameStatus = GameStatus.STARTED;
+        announceToGroup(gameStatus);
+    }
+
+    public static void setGameStatus(GameStatus gameStatus) {
+        thisServer.gameStatus = gameStatus;
     }
 
     @Override
     public List<GamePlayer> getGamePlayersList() {
         return gamePlayerList;
+    }
+
+    @Override
+    public GameStatus getGameStatus() throws RemoteException {
+        return gameStatus;
     }
 }

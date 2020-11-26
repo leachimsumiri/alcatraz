@@ -2,6 +2,7 @@ package at.falb.games.alcatraz.api.group.communication;
 
 import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.logic.Server;
+import at.falb.games.alcatraz.api.utilities.GameStatus;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.LogManager;
@@ -38,6 +39,8 @@ public class SpreadMessageListener implements AdvancedMessageListener {
             } else if (spreadMessageObject instanceof ServerCfg) {
                 Server.updateActualServersList((ServerCfg) spreadMessageObject);
 
+            } else if (spreadMessageObject instanceof GameStatus) {
+                Server.setGameStatus((GameStatus) spreadMessageObject);
             } else {
                 throw new Exception("This object type is unknown: " + spreadMessageObject.getClass().getSimpleName());
             }

@@ -185,13 +185,6 @@ class ServerTest {
     }
 
     @Test
-    void beginGame() throws SpreadException, GamePlayerException, BeginGameException {
-        registerAllUsersAndAssert();
-        server.beginGame();
-        // This test is only to check, that no exception is thrown
-    }
-
-    @Test
     void beginGameNotEnoughPlayers() {
         assertThrows(BeginGameException.class, () -> server.beginGame());
     }
