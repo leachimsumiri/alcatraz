@@ -1,7 +1,6 @@
 package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.*;
-import at.falb.games.alcatraz.api.logic.GameMoveListener;
 import at.falb.games.alcatraz.api.utilities.GameMove;
 
 import java.io.Serializable;
@@ -13,14 +12,13 @@ import java.util.List;
 public class Client extends UnicastRemoteObject implements ClientInterface, Serializable {
 
     private List<GamePlayer> GamePlayersList = new ArrayList<>();
-    private GamePlayer Player = new GamePlayer(0);
+    private GamePlayer player;
     private Alcatraz game = new Alcatraz();
     private MoveListener listener;
 
-    public Client(String IP, int port) throws RemoteException{
+    public Client(GamePlayer player) throws RemoteException{
         super();
-        this.Player.setIP(IP); ;
-        this.Player.setPort(port);
+        this.player = player;
     }
 
     @Override
@@ -35,18 +33,18 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 
     @Override
     public GamePlayer getPlayer() throws RemoteException {
-        return Player;
+        return player;
     }
 
     @Override
     public void setPlayer(GamePlayer player) throws RemoteException {
-        Player = player;
+        this.player = player;
     }
 
     @Override
-    public void move(GamePlayer player, GameMove gameMove) throws RemoteException {
+    public void move(Player player, GameMove gameMove) throws RemoteException {
         try {
-            this.game.doMove(player, gameMove.getPrisoner(), gameMove.getRowOrCol().ordinal(), gameMove.getRow(),
+            this.game.doMove(player, gameMove.getPrisoner(), gameMove.getRowOrCol(), gameMove.getRow(),
                     gameMove.getColumn());
         } catch (IllegalMoveException e) {
             e.printStackTrace();
@@ -61,7 +59,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
 
     @Override
     public void startGame(List<GamePlayer> playerList){
-        this.game.init(playerList.size(), this.Player.getId());
+        this.game.init(playerList.size() + 1, this.player.getId());
 
         this.listener = new GameMoveListener(playerList);
         this.game.addMoveListener(this.listener);

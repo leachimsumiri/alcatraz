@@ -1,11 +1,13 @@
 package at.falb.games.alcatraz.api.logic;
 
-import at.falb.games.alcatraz.api.Alcatraz;
-import at.falb.games.alcatraz.api.GamePlayer;
-import at.falb.games.alcatraz.api.MoveListener;
-import at.falb.games.alcatraz.api.Player;
-import at.falb.games.alcatraz.api.Prisoner;
+import at.falb.games.alcatraz.api.*;
+import at.falb.games.alcatraz.api.utilities.GameMove;
+import at.falb.games.alcatraz.api.utilities.RowOrCol;
 
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 import java.util.List;
 
 public class GameMoveListener implements MoveListener {
@@ -19,7 +21,16 @@ public class GameMoveListener implements MoveListener {
     public void moveDone(Player player, Prisoner prisoner, int rowOrCol, int row, int col) {
         System.out.println("moving " + prisoner + " to " + (rowOrCol == Alcatraz.ROW ? "row" : "col") + " " + (rowOrCol == Alcatraz.ROW ? row : col));
         for (GamePlayer current_player : other_players) {
-            // TODO send move to other players via RMI
+            try {
+                ClientInterface client = (ClientInterface) Naming.lookup("rmi://" + current_player.getIp() + "/" + current_player.getName());
+                client.move(player, new GameMove(col, row, rowOrCol, prisoner));
+            } catch (NotBoundException e) {
+                e.printStackTrace();
+            } catch (MalformedURLException e) {
+                e.printStackTrace();
+            } catch (RemoteException e) {
+                e.printStackTrace();
+            }
             System.out.println("Send move to player: " + current_player);
         }
     }

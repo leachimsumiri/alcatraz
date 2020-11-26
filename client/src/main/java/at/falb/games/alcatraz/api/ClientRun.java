@@ -3,11 +3,16 @@ package at.falb.games.alcatraz.api;
 import at.falb.games.alcatraz.api.logic.Client;
 import at.falb.games.alcatraz.api.utilities.ClientValues;
 import at.falb.games.alcatraz.api.utilities.*;
+import at.falb.games.alcatraz.impl.Game;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.SpreadException;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.rmi.Naming;
+import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
 import java.time.LocalDateTime;
@@ -21,7 +26,44 @@ public class ClientRun {
     private static ClientCfg clientCfg;
 
     public static void main(String[] args) {
+        try {
+            String serverName = args.length == 2 && StringUtils.isNotBlank(args[1]) ? args[1] : ClientValues.MAIN_SERVER;
+            clientCfg = JsonHandler.readClientJson(args[0]);
+            clientCfg.setStartTimestamp(START_TIMESTAMP);
+            ServerCfg serverCfg = JsonHandler.readServerJson(serverName);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        List<GamePlayer> playerList = new ArrayList<>();
+        if (clientCfg.getName().equals("player1")) {
+            GamePlayer player = new GamePlayer(1);
+            player.setName("player2");
+            player.setIP("127.0.0.1");
+            player.setPort(5102);
+            playerList.add(player);
+        } else {
+            GamePlayer player = new GamePlayer(0);
+            player.setName("player1");
+            player.setIP("127.0.0.1");
+            player.setPort(5101);
+            playerList.add(player);
+        }
 
+        // Create RMI registry for this client
+        ClientInterface client = null;
+        try {
+            GamePlayer thisPlayer = new GamePlayer(0);
+            thisPlayer.setName(clientCfg.getName());
+            thisPlayer.setPort(clientCfg.getPort());
+            thisPlayer.setIP(clientCfg.getIp());
+            client = new Client(thisPlayer);
+            Registry registry =  LocateRegistry.createRegistry(clientCfg.getPort());
+            Naming.rebind("rmi://" + clientCfg.getIp() + ":" + clientCfg.getPort() + "/" + clientCfg.getName(), client);
+            client.startGame(playerList);
+        } catch (RemoteException | MalformedURLException e) {
+            e.printStackTrace();
+        }
+        /*
         try {
             String serverName = args.length == 2 && StringUtils.isNotBlank(args[1]) ? args[1] : ClientValues.MAIN_SERVER;
             clientCfg = JsonHandler.readClientJson(args[0]);
@@ -77,14 +119,7 @@ public class ClientRun {
             LOG.error("It wasn't possible to start the client", e);
         }
 
-        // Create RMI registry for this client
-        ClientInterface client = new Client(clientCfg.getIp(), clientCfg.getPort());
-        Registry registry =  LocateRegistry.createRegistry(clientCfg.getPort());
-        registry.rebind(clientCfg.getName(), client);
-        System.out.println("First player client up and running");
 
-        List<GamePlayer> playerList = null; //TODO vom server holen
-        client.startGame(playerList);
 
 
         //////////////////////////// Testing purposes
@@ -98,5 +133,6 @@ public class ClientRun {
 
     public static ClientCfg getClientCfg() {
         return clientCfg;
+         */
     }
 }

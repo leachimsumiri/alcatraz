@@ -8,10 +8,10 @@ import java.util.Objects;
 public class GameMove {
     private int column;
     private int row;
-    private RowOrCol rowOrCol;
+    private int rowOrCol;
     private Prisoner prisoner;
 
-    public GameMove(int column, int row, RowOrCol rowOrCol, Prisoner prisoner) {
+    public GameMove(int column, int row, int rowOrCol, Prisoner prisoner) {
         this.column = column;
         this.row = row;
         this.rowOrCol = rowOrCol;
@@ -30,7 +30,7 @@ public class GameMove {
         return prisoner;
     }
 
-    public RowOrCol getRowOrCol() {
+    public int getRowOrCol() {
         return rowOrCol;
     }
 
@@ -38,7 +38,7 @@ public class GameMove {
         this.prisoner = prisoner;
     }
 
-    public void setRowOrCol(RowOrCol rowOrCol) {
+    public void setRowOrCol(int rowOrCol) {
         this.rowOrCol = rowOrCol;
     }
 
