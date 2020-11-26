@@ -6,13 +6,12 @@ import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.MoveListener;
 import at.falb.games.alcatraz.api.ServerInterface;
 
-import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Client extends UnicastRemoteObject implements ClientInterface, Serializable {
+public class Client extends UnicastRemoteObject implements ClientInterface {
 
     private List<GamePlayer> gamePlayersList = new ArrayList<>();
     private GamePlayer gamePlayer = new GamePlayer();

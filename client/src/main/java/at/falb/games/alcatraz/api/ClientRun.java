@@ -4,12 +4,11 @@ import at.falb.games.alcatraz.api.logic.Client;
 import at.falb.games.alcatraz.api.logic.ClientValues;
 import at.falb.games.alcatraz.api.utilities.ClientCfg;
 import at.falb.games.alcatraz.api.utilities.JsonHandler;
+import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.time.LocalDateTime;
 
 public class ClientRun {
@@ -26,10 +25,9 @@ public class ClientRun {
             gamePlayer.setName(clientCfg.getName());
             gamePlayer.setIP(clientCfg.getIp());
             gamePlayer.setPort(clientCfg.getPort());
-            final Client client = new Client();
+            ClientInterface client = new Client();
             client.setGamePlayer(gamePlayer);
-            Registry registry = LocateRegistry.createRegistry(gamePlayer.getPort());
-            registry.rebind(gamePlayer.getName(), client);
+            ServerClientUtility.createRegistry(client);
             LOG.info("Client started");
         } catch (Exception e) {
             LOG.error("It wasn't possible to start the client", e);

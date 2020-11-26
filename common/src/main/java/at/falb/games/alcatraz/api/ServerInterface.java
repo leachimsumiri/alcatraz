@@ -6,12 +6,16 @@ import at.falb.games.alcatraz.api.utilities.GameStatus;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import spread.SpreadException;
 
+import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 
 public interface ServerInterface extends Remote {
+
+    ServerCfg getServerCfg() throws RemoteException;
+
     /**
      * Register the {@link GamePlayer} and if successful, it will return the new id for the player.
      * @param player an instance of type {@link GamePlayer}
@@ -33,7 +37,7 @@ public interface ServerInterface extends Remote {
      * @throws SpreadException
      * @throws BeginGameException
      */
-    void beginGame() throws RemoteException, SpreadException, BeginGameException, NotBoundException;
+    void beginGame() throws RemoteException, SpreadException, BeginGameException, NotBoundException, MalformedURLException;
 
     List<GamePlayer> getGamePlayersList() throws RemoteException;
 

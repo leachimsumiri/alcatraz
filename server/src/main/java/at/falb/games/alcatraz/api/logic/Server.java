@@ -19,11 +19,10 @@ import spread.SpreadMessage;
 
 import java.io.Serializable;
 import java.net.InetAddress;
+import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.rmi.registry.LocateRegistry;
-import java.rmi.registry.Registry;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
@@ -73,10 +72,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         return actualServersList;
     }
 
-    public static ServerCfg getServerCfg() {
-        return thisServer.serverCfg;
-    }
-
     public static void updateActualServersList(ServerCfg serverCfg) {
         // Added this because the indexof, wasn't finding the server
         final Optional<ServerCfg> optionalServerCfg = actualServersList
@@ -93,11 +88,10 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         thisServer.getMainRegistryServer();
     }
 
-    public static Server build(ServerCfg serverCfg) throws RemoteException, UnknownHostException, SpreadException {
+    public static Server build(ServerCfg serverCfg) throws RemoteException, UnknownHostException, SpreadException, MalformedURLException {
         if (thisServer == null) {
             build(serverCfg, new SpreadConnection());
-            Registry registry = LocateRegistry.createRegistry(serverCfg.getRegistryPort());
-            registry.rebind(serverCfg.getName(), thisServer);
+            ServerClientUtility.createRegistry(thisServer);
         }
         return thisServer;
     }
@@ -136,6 +130,11 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
      */
     public static void setThisServer(Server thisServer) {
         Server.thisServer = thisServer;
+    }
+
+    @Override
+    public ServerCfg getServerCfg() throws RemoteException {
+        return serverCfg;
     }
 
     @Override
@@ -239,7 +238,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     @Override
-    public void beginGame() throws BeginGameException, RemoteException, NotBoundException, SpreadException {
+    public void beginGame() throws BeginGameException, RemoteException, NotBoundException, SpreadException, MalformedURLException {
         if (gamePlayerList.size() < 2) {
             throw new BeginGameException("Not enough players are register");
         }
@@ -264,5 +263,9 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     @Override
     public GameStatus getGameStatus() throws RemoteException {
         return gameStatus;
+    }
+
+    public static Server getThisServer() {
+        return thisServer;
     }
 }
