@@ -2,6 +2,7 @@ package at.falb.games.alcatraz.api.logic;
 
 
 import at.falb.games.alcatraz.api.GamePlayer;
+import at.falb.games.alcatraz.api.exceptions.BeginGameException;
 import at.falb.games.alcatraz.api.exceptions.GamePlayerException;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import org.junit.jupiter.api.BeforeEach;
@@ -50,7 +51,7 @@ class ServerTest {
         Server.setThisServer(null);
         server = Server.build(serverCfg, connection);
         Server.getActualServersList().clear();
-        server.getGamePlayerList().clear();
+        server.getGamePlayersList().clear();
     }
 
     @Test
@@ -93,11 +94,11 @@ class ServerTest {
     }
 
     @Test
-    void registerMaxPlayersReached() {
+    void registerMaxPlayersReached() throws RemoteException {
         for (int i = 0; i < ServerValues.MAX_PLAYERS; i++) {
             final GamePlayer gamePlayer = new GamePlayer();
             gamePlayer.setName("game" + i);
-            server.getGamePlayerList().add(gamePlayer);
+            server.getGamePlayersList().add(gamePlayer);
         }
         final GamePlayer gamePlayer = new GamePlayer();
         gamePlayer.setName("game0");
@@ -107,7 +108,7 @@ class ServerTest {
     @ParameterizedTest
     @MethodSource
     void registerPlayersFail(GamePlayer gamePlayer) {
-        server.getGamePlayerList().add(new GamePlayer("game"));
+        server.getGamePlayersList().add(new GamePlayer("game"));
         assertThrows(GamePlayerException.class, () -> server.register(gamePlayer));
     }
 
@@ -121,7 +122,7 @@ class ServerTest {
     void deregisterAnExistingGamePlayer() throws SpreadException, GamePlayerException {
         final GamePlayer gamePlayer = new GamePlayer();
         gamePlayer.setName("game");
-        server.getGamePlayerList().add(gamePlayer);
+        server.getGamePlayersList().add(gamePlayer);
 
         server.deregister(gamePlayer);
 
@@ -143,7 +144,7 @@ class ServerTest {
     @ValueSource(ints = {0, 1, 2, 3})
     void registerAPlayerWhenThePortIsFree(int id) throws SpreadException, GamePlayerException {
         registerAllUsersAndAssert();
-        final GamePlayer gamePlayerToDeregister = server.getGamePlayerList().get(id);
+        final GamePlayer gamePlayerToDeregister = server.getGamePlayersList().get(id);
         server.deregister(gamePlayerToDeregister);
 
         final int actualId = server.register(new GamePlayer("game" + id));
@@ -181,5 +182,10 @@ class ServerTest {
         activeServers = server.getMainRegistryServer();
 
         assertEquals(Server.getActualServersList().get(0).getStartTimestamp(), activeServers.getStartTimestamp());
+    }
+
+    @Test
+    void beginGameNotEnoughPlayers() {
+        assertThrows(BeginGameException.class, () -> server.beginGame());
     }
 }

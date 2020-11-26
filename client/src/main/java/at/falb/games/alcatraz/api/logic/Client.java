@@ -3,43 +3,45 @@ package at.falb.games.alcatraz.api.logic;
 import at.falb.games.alcatraz.api.*;
 import at.falb.games.alcatraz.api.utilities.GameMove;
 
-import java.io.Serializable;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Client extends UnicastRemoteObject implements ClientInterface, Serializable {
+public class Client extends UnicastRemoteObject implements ClientInterface {
 
-    private List<GamePlayer> GamePlayersList = new ArrayList<>();
-    private GamePlayer player;
-    private Alcatraz game = new Alcatraz();
-    private MoveListener listener;
+    private List<GamePlayer> gamePlayersList = new ArrayList<>();
+    private GamePlayer gamePlayer = new GamePlayer();
+    //This is the list of servers, that will be updated every x seconds.
+    private final List<ServerInterface> serverList = new ArrayList<>();
+    // This Server is used for the first time
+    private ServerInterface mainRegistryServer;
 
-    public Client(GamePlayer player) throws RemoteException{
-        super();
-        this.player = player;
+    public Client() throws RemoteException {
     }
+    //
+
 
     @Override
     public List<GamePlayer> getGamePlayersList() throws RemoteException {
-        return GamePlayersList;
+        return gamePlayersList;
     }
 
     @Override
     public void setGamePlayersList(List<GamePlayer> gamePlayersList) throws RemoteException {
-        GamePlayersList = gamePlayersList;
+        this.gamePlayersList = gamePlayersList;
     }
 
     @Override
-    public GamePlayer getPlayer() throws RemoteException {
-        return player;
+    public GamePlayer getGamePlayer() throws RemoteException {
+        return gamePlayer;
     }
 
     @Override
-    public void setPlayer(GamePlayer player) throws RemoteException {
-        this.player = player;
+    public void setGamePlayer(GamePlayer gamePlayer) throws RemoteException {
+        this.gamePlayer = gamePlayer;
     }
+
 
     @Override
     public void move(Player player, GameMove gameMove) throws RemoteException {
@@ -69,15 +71,17 @@ public class Client extends UnicastRemoteObject implements ClientInterface, Seri
         System.out.println("Received next turn message");
     }
 
-
-    @Override
+   @Override
     public void startGame(List<GamePlayer> playerList){
-        this.game.init(playerList.size() + 1, this.player.getId());
+        Alcatraz game = new Alcatraz();
+       game.init(playerList.size(), this.gamePlayer.getId());
 
-        this.listener = new GameMoveListener(playerList);
-        this.game.addMoveListener(this.listener);
+        MoveListener listener = new GameMoveListener(playerList);
+        game.addMoveListener(listener);
 
-        this.game.showWindow();
-        this.game.start();
+        game.showWindow();
+        game.start();
     }
+
+
 }

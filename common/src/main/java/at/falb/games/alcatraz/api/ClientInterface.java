@@ -8,9 +8,12 @@ import java.util.List;
 
 public interface ClientInterface extends Remote {
     List<GamePlayer> getGamePlayersList() throws RemoteException;
+
     void setGamePlayersList(List<GamePlayer> gamePlayersList) throws RemoteException;
-    GamePlayer getPlayer() throws RemoteException;
-    void setPlayer(GamePlayer player) throws RemoteException;
+
+    GamePlayer getGamePlayer() throws RemoteException;
+
+    void setGamePlayer(GamePlayer gamePlayer) throws RemoteException;
 
     void move(Player player, GameMove gameMove) throws RemoteException;
     void nextTurn(GamePlayer player) throws RemoteException;
