@@ -12,6 +12,7 @@ import spread.SpreadException;
 import spread.SpreadGroup;
 import spread.SpreadMessage;
 
+import java.rmi.RemoteException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -56,21 +57,23 @@ public class SpreadMessageListener implements AdvancedMessageListener {
         Arrays.stream(spreadMessage.getMembershipInfo().getMembers())
                 .map(this::createServerCfg)
                 .forEachOrdered(Server.getActualServersList()::add);
-
         try {
-            Server.announceToGroup(Server.getServerCfg());
+            Server.announceToGroup(Server.getThisServer().getServerCfg());
             LOG.info(String.format("Current Group View: %s", Server.getActualServersList()));
-        } catch (SpreadException e) {
+        } catch (SpreadException | RemoteException e) {
             LOG.error("It wasn't possible to announce the group about that a new server is running", e);
         }
     }
 
     private ServerCfg createServerCfg(SpreadGroup spreadGroup) {
         String[] splited = spreadGroup.toString().split("#");
-        if (Server.getServerCfg().getName().equals(splited[1])) {
-            return Server.getServerCfg();
-        } else {
-            return new ServerCfg(splited[1]);
+        try {
+            if (Server.getThisServer().getServerCfg().getName().equals(splited[1])) {
+                return Server.getThisServer().getServerCfg();
+            }
+        } catch (RemoteException e) {
+            LOG.error("This shouldn't happen, since it is getting the instance from it self", e);
         }
+        return new ServerCfg(splited[1]);
     }
 }
