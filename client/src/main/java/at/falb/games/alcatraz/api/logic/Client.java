@@ -1,6 +1,8 @@
-package at.falb.games.alcatraz.api;
+package at.falb.games.alcatraz.api.logic;
 
+import at.falb.games.alcatraz.api.*;
 import at.falb.games.alcatraz.api.logic.GameMoveListener;
+import at.falb.games.alcatraz.api.utilities.GameMove;
 
 import java.io.Serializable;
 import java.rmi.RemoteException;
@@ -8,10 +10,12 @@ import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Client extends UnicastRemoteObject implements ClientInterface , Serializable {
+public class Client extends UnicastRemoteObject implements ClientInterface, Serializable {
 
     private List<GamePlayer> GamePlayersList = new ArrayList<>();
     private GamePlayer Player = new GamePlayer(0);
+    private Alcatraz game = new Alcatraz();
+    private MoveListener listener;
 
     public Client(String IP, int port) throws RemoteException{
         super();
@@ -39,15 +43,30 @@ public class Client extends UnicastRemoteObject implements ClientInterface , Ser
         Player = player;
     }
 
-   @Override
+    @Override
+    public void move(GamePlayer player, GameMove gameMove) throws RemoteException {
+        try {
+            this.game.doMove(player, gameMove.getPrisoner(), gameMove.getRowOrCol().ordinal(), gameMove.getRow(),
+                    gameMove.getColumn());
+        } catch (IllegalMoveException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Override
+    public void nextTurn(GamePlayer player) throws RemoteException {
+        System.out.println("Received next turn message");
+    }
+
+
+    @Override
     public void startGame(List<GamePlayer> playerList){
-        Alcatraz game = new Alcatraz();
-        game.init(playerList.size(), this.Player.getId());
+        this.game.init(playerList.size(), this.Player.getId());
 
-        MoveListener listener = new GameMoveListener(playerList);
-        game.addMoveListener(listener);
+        this.listener = new GameMoveListener(playerList);
+        this.game.addMoveListener(this.listener);
 
-        game.showWindow();
-        game.start();
+        this.game.showWindow();
+        this.game.start();
     }
 }
