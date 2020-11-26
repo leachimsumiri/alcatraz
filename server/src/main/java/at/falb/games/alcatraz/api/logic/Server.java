@@ -1,9 +1,12 @@
 package at.falb.games.alcatraz.api.logic;
 
+import at.falb.games.alcatraz.api.ClientInterface;
 import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.ServerInterface;
+import at.falb.games.alcatraz.api.exceptions.BeginGameException;
 import at.falb.games.alcatraz.api.exceptions.GamePlayerException;
 import at.falb.games.alcatraz.api.group.communication.SpreadMessageListener;
+import at.falb.games.alcatraz.api.utilities.GameStatus;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.commons.lang3.StringUtils;
@@ -17,6 +20,7 @@ import spread.SpreadMessage;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -30,6 +34,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     private static final Logger LOG = LogManager.getLogger(Server.class);
 
     private List<GamePlayer> gamePlayerList = new ArrayList<>();
+    private GameStatus gameStatus = GameStatus.NOT_STARTED;
     private final SpreadConnection connection;
 
     private static Server thisServer;
@@ -125,10 +130,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         LOG.info(gamePlayerList);
     }
 
-    public List<GamePlayer> getGamePlayerList() {
-        return gamePlayerList;
-    }
-
     /**
      * This is used only for testing
      * @param thisServer
@@ -214,6 +215,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
             LOG.error(errorMessage);
             throw new GamePlayerException(errorMessage);
         }
+
         gamePlayerList.remove(gamePlayer);
         announceToGroup((Serializable) gamePlayerList);
         LOG.info(String.format("Player %d removed!!", gamePlayer.getId()));
@@ -237,9 +239,30 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     @Override
-    public void beginGame() {
-        if (gamePlayerList.size() >= 2) {
-            // TODO: clientInterface.startGame(this.gamePlayerList);
+    public void beginGame() throws BeginGameException, RemoteException, NotBoundException, SpreadException {
+        if (gamePlayerList.size() < 2) {
+            throw new BeginGameException("Not enough players are register");
         }
+
+        for (GamePlayer gamePlayer : gamePlayerList) {
+            final ClientInterface clientInterface = ServerClientUtility.locateRegistryAndLookup(gamePlayer);
+            clientInterface.startGame(gamePlayerList);
+        }
+        gameStatus = GameStatus.STARTED;
+        announceToGroup(gameStatus);
+    }
+
+    public static void setGameStatus(GameStatus gameStatus) {
+        thisServer.gameStatus = gameStatus;
+    }
+
+    @Override
+    public List<GamePlayer> getGamePlayersList() {
+        return gamePlayerList;
+    }
+
+    @Override
+    public GameStatus getGameStatus() throws RemoteException {
+        return gameStatus;
     }
 }
