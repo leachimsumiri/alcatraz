@@ -10,6 +10,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import java.util.List;
+
 public class ClientRun {
     private static final Logger LOG = LogManager.getLogger(ClientRun.class);
 
@@ -17,8 +19,8 @@ public class ClientRun {
         try {
 
             String serverName = args.length == 2 && StringUtils.isNotBlank(args[0]) ? args[0] : ClientValues.MAIN_SERVER;
-            // TODO: This is the first known server
-            final ServerCfg serverCfg = JsonHandler.readServerJson(serverName);
+            final ServerCfg firstServer = JsonHandler.readServerJson(serverName);
+            final List<ServerCfg> allPossibleServers = ServerClientUtility.getServerCfgList();
 
             InputHelper.getInstance().welcome();
             final GamePlayer gamePlayer = InputHelper.getInstance().requestPlayerData();
