@@ -58,40 +58,25 @@ public final class ServerClientUtility {
     }
 
     /**
-     * Bounds to the specified server/client
-     * @param ip of the registry
-     * @param port of the registry
-     * @param name of the registry
-     * @param <T> the type of remote will be return
-     * @return the remote of specified interface
-     * @throws RemoteException see {@link LocateRegistry#getRegistry(String, int)}
-     * @throws NotBoundException see {@link Registry#lookup(String)}
-     */
-    private static <T> T locateRegistryAndLookup(String ip, int port, String name) throws RemoteException, NotBoundException {
-        final Registry registry = LocateRegistry.getRegistry(port);
-        return (T) registry.lookup(name);
-    }
-
-    /**
-     * See {@link ServerClientUtility#locateRegistryAndLookup(String, int, String)}
+     * Look for registry server
      * @param gamePlayer instance of type {@link GamePlayer}
      * @return the remote of type {@link ClientInterface}
      * @throws RemoteException see {@link LocateRegistry#getRegistry(String, int)}
      * @throws NotBoundException see {@link Registry#lookup(String)}
      */
-    public static ClientInterface locateRegistryAndLookup(GamePlayer gamePlayer) throws RemoteException, NotBoundException, MalformedURLException {
+    public static ClientInterface lookup(GamePlayer gamePlayer) throws RemoteException, NotBoundException, MalformedURLException {
         return (ClientInterface) Naming.lookup(completeUrl(gamePlayer.getPort(), gamePlayer.getName()));
     }
 
     /**
-     * See {@link ServerClientUtility#locateRegistryAndLookup(String, int, String)}
+     * Look for registry server
      * @param serverCfg instance of type {@link ServerCfg}
      * @return the remote of type {@link ServerInterface}
      * @throws RemoteException see {@link LocateRegistry#getRegistry(String, int)}
      * @throws NotBoundException see {@link Registry#lookup(String)}
      */
-    public static ServerInterface locateRegistryAndLookup(ServerCfg serverCfg) throws RemoteException, NotBoundException {
-        return locateRegistryAndLookup(serverCfg.getServerIp(), serverCfg.getRegistryPort(), serverCfg.getName());
+    public static ServerInterface lookup(ServerCfg serverCfg) throws RemoteException, NotBoundException, MalformedURLException {
+        return (ServerInterface) Naming.lookup(completeUrl(serverCfg.getRegistryPort(), serverCfg.getName()));
     }
 
     private static <T extends Remote> void createRegistry(int port, String name, T t) throws RemoteException, MalformedURLException {

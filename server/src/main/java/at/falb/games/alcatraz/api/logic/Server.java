@@ -244,7 +244,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         }
 
         for (GamePlayer gamePlayer : gamePlayerList) {
-            final ClientInterface clientInterface = ServerClientUtility.locateRegistryAndLookup(gamePlayer);
+            final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer);
             clientInterface.startGame(gamePlayerList);
         }
         gameStatus = GameStatus.STARTED;

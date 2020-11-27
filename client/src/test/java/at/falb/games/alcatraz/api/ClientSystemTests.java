@@ -37,14 +37,14 @@ public class ClientSystemTests {
 
     @Test
     void checkIfPossibleToLocateRemote() throws RemoteException, NotBoundException, MalformedURLException {
-        final GamePlayer actualGamePlayer = ServerClientUtility.locateRegistryAndLookup(this.gamePlayer).getGamePlayer();
-        final ServerCfg actualServerCfg = ServerClientUtility.locateRegistryAndLookup(this.serverCfg).getServerCfg();
+        final GamePlayer actualGamePlayer = ServerClientUtility.lookup(this.gamePlayer).getGamePlayer();
+        final ServerCfg actualServerCfg = ServerClientUtility.lookup(this.serverCfg).getServerCfg();
         assertEquals(serverCfg, actualServerCfg);
         assertEquals(gamePlayer, actualGamePlayer);
     }
 
     @Test
     void checkBeginThrowsError() {
-        assertThrows(BeginGameException.class, () -> ServerClientUtility.locateRegistryAndLookup(serverCfg).beginGame());
+        assertThrows(BeginGameException.class, () -> ServerClientUtility.lookup(serverCfg).beginGame());
     }
 }
