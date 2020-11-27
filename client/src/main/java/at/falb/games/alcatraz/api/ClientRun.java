@@ -10,8 +10,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.time.LocalDateTime;
-import java.util.ArrayList;
 import java.util.List;
 
 public class ClientRun {
@@ -30,6 +28,7 @@ public class ClientRun {
             ClientInterface client = new Client();
             client.setGamePlayer(gamePlayer);
             ServerClientUtility.createRegistry(client);
+            client.register();
             LOG.info("Client started: " + gamePlayer);
         } catch (Exception e) {
             LOG.error("It wasn't possible to start the client", e);
