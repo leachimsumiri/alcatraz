@@ -10,14 +10,19 @@ import java.util.List;
 
 public class Client extends UnicastRemoteObject implements ClientInterface {
 
-    private List<GamePlayer> gamePlayersList = new ArrayList<>();
-    private GamePlayer gamePlayer = new GamePlayer();
+    private List<GamePlayer> gamePlayersList;
+    private GamePlayer gamePlayer;
     //This is the list of servers, that will be updated every x seconds.
     private final List<ServerInterface> serverList = new ArrayList<>();
     // This Server is used for the first time
     private ServerInterface mainRegistryServer;
 
-    public Client() throws RemoteException {
+    private Alcatraz game = new Alcatraz();
+    private MoveListener listener;
+
+    public Client(GamePlayer gamePlayer, List<GamePlayer> gamePlayersList) throws RemoteException {
+        this.gamePlayer = gamePlayer;
+        this.gamePlayersList = gamePlayersList;
     }
     //
 
@@ -45,43 +50,28 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
     @Override
     public void move(Player player, GameMove gameMove) throws RemoteException {
-        System.out.println(player.getName());
-        System.out.println(gameMove.getRow());
-
-    }
-
-/*
-    @Override
-    public void move(Player player, GameMove gameMove) throws RemoteException {
-        System.out.println("Called Move!");
-
         try {
             this.game.doMove(player, gameMove.getPrisoner(), gameMove.getRowOrCol(), gameMove.getRow(),
                     gameMove.getColumn());
         } catch (IllegalMoveException e) {
             e.printStackTrace();
         }
-
     }
-
- */
 
     @Override
     public void nextTurn(GamePlayer player) throws RemoteException {
         System.out.println("Received next turn message");
     }
 
-   @Override
-    public void startGame(List<GamePlayer> playerList){
-        Alcatraz game = new Alcatraz();
-       game.init(playerList.size(), this.gamePlayer.getId());
 
-        MoveListener listener = new GameMoveListener(playerList);
-        game.addMoveListener(listener);
+    @Override
+    public void startGame(){
+        this.game.init(this.gamePlayersList.size() + 1, this.gamePlayer.getId());
 
-        game.showWindow();
-        game.start();
+        this.listener = new GameMoveListener(this.gamePlayersList);
+        this.game.addMoveListener(this.listener);
+
+        this.game.showWindow();
+        this.game.start();
     }
-
-
 }

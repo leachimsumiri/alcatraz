@@ -18,5 +18,5 @@ public interface ClientInterface extends Remote {
     void move(Player player, GameMove gameMove) throws RemoteException;
     void nextTurn(GamePlayer player) throws RemoteException;
 
-    void startGame(List<GamePlayer> playerList) throws RemoteException;
+    void startGame() throws RemoteException;
 }

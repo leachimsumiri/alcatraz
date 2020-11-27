@@ -2,10 +2,9 @@ package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.*;
 import at.falb.games.alcatraz.api.utilities.GameMove;
-import at.falb.games.alcatraz.api.utilities.RowOrCol;
+import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 
 import java.net.MalformedURLException;
-import java.rmi.Naming;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.List;
@@ -22,13 +21,13 @@ public class GameMoveListener implements MoveListener {
         System.out.println("moving " + prisoner + " to " + (rowOrCol == Alcatraz.ROW ? "row" : "col") + " " + (rowOrCol == Alcatraz.ROW ? row : col));
         for (GamePlayer current_player : other_players) {
             try {
-                ClientInterface client = (ClientInterface)Naming.lookup("rmi://localhost/" + current_player.getName());
-                //client.move(player, new GameMove(col, row, rowOrCol, prisoner));
+                ClientInterface client = ServerClientUtility.lookup(current_player);
+                client.move(player, new GameMove(col, row, rowOrCol, prisoner));
+            } catch (RemoteException e) {
+                e.printStackTrace();
             } catch (NotBoundException e) {
                 e.printStackTrace();
             } catch (MalformedURLException e) {
-                e.printStackTrace();
-            } catch (RemoteException e) {
                 e.printStackTrace();
             }
             System.out.println("Send move to player: " + current_player);
