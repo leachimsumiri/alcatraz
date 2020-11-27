@@ -7,7 +7,6 @@ import at.falb.games.alcatraz.api.ServerInterface;
 import java.net.MalformedURLException;
 import java.rmi.Naming;
 import java.rmi.NotBoundException;
-import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.rmi.registry.LocateRegistry;
 import java.rmi.registry.Registry;
@@ -15,24 +14,19 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
-import java.util.stream.Collectors;
 
 public final class ServerClientUtility {
     //These lists have the configurations of the clients and servers
     private static final List<ServerCfg> serverCfgList = new ArrayList<>();
     private static final List<ClientCfg> clientCfgList = new ArrayList<>();
-    private static final String RMI_URL = "rmi://localhost:%d/%s";
+
+    // The servers and clients differentiate by their socket
+    private static final String RMI_URL = "rmi://localhost:%d";
+    private static final String CLIENT_URL = RMI_URL + "/client";
+    private static final String SERVER_URL = RMI_URL + "/server";
 
     private ServerClientUtility() {
 
-    }
-
-    public static List<ServerCfg> getTheOtherServers(ServerCfg serverCfg) {
-        return serverCfgList.stream().filter(s -> !s.equals(serverCfg)).collect(Collectors.toList());
-    }
-
-    public static List<ClientCfg> getTheOtherClients(ClientCfg clientCfg) {
-        return clientCfgList.stream().filter(s -> !s.equals(clientCfg)).collect(Collectors.toList());
     }
 
     public static List<ServerCfg> getServerCfgList() {
@@ -58,46 +52,51 @@ public final class ServerClientUtility {
     }
 
     /**
-     * Look for registry server
+     * Look for client RMI registry server
      * @param gamePlayer instance of type {@link GamePlayer}
      * @return the remote of type {@link ClientInterface}
      * @throws RemoteException see {@link LocateRegistry#getRegistry(String, int)}
      * @throws NotBoundException see {@link Registry#lookup(String)}
      */
     public static ClientInterface lookup(GamePlayer gamePlayer) throws RemoteException, NotBoundException, MalformedURLException {
-        return (ClientInterface) Naming.lookup(completeUrl(gamePlayer.getPort(), gamePlayer.getName()));
+        return (ClientInterface) Naming.lookup(completesTheRmiUrl(CLIENT_URL, gamePlayer.getPort()));
     }
 
     /**
-     * Look for registry server
+     * Look for server RMI registry server
      * @param serverCfg instance of type {@link ServerCfg}
      * @return the remote of type {@link ServerInterface}
      * @throws RemoteException see {@link LocateRegistry#getRegistry(String, int)}
      * @throws NotBoundException see {@link Registry#lookup(String)}
      */
     public static ServerInterface lookup(ServerCfg serverCfg) throws RemoteException, NotBoundException, MalformedURLException {
-        return (ServerInterface) Naming.lookup(completeUrl(serverCfg.getRegistryPort(), serverCfg.getName()));
+        return (ServerInterface) Naming.lookup(completesTheRmiUrl(SERVER_URL, serverCfg.getRegistryPort()));
     }
 
-    private static <T extends Remote> void createRegistry(int port, String name, T t) throws RemoteException, MalformedURLException {
-        LocateRegistry.createRegistry(port);
-        Naming.rebind(completeUrl(port, name), t);
+    private static String completesTheRmiUrl(String url, int port) {
+        return String.format(url, port);
     }
 
-    private static String completeUrl(int port, String name) {
-        return String.format(RMI_URL, port, name);
-    }
-
-
+    /**
+     * Creates a client RMI registry Server
+     * @param clientInterface an instance of type {@link ClientInterface}
+     * @throws RemoteException see {@link RemoteException}
+     * @throws MalformedURLException see {@link MalformedURLException}
+     */
     public static void createRegistry(ClientInterface clientInterface) throws RemoteException, MalformedURLException {
         final GamePlayer gamePlayer = clientInterface.getGamePlayer();
-        createRegistry(gamePlayer.getPort(), gamePlayer.getName(), clientInterface);
+        LocateRegistry.createRegistry(gamePlayer.getPort());
+        Naming.rebind(completesTheRmiUrl(CLIENT_URL, gamePlayer.getPort()), clientInterface);
     }
 
-
+    /**
+     * Clients a server RMI registry Server
+     * @param serverInterface an instance of type {@link ServerInterface}
+     * @throws RemoteException see {@link RemoteException}
+     * @throws MalformedURLException see {@link MalformedURLException}
+     */
     public static void createRegistry(ServerInterface serverInterface) throws RemoteException, MalformedURLException {
         final ServerCfg serverCfg = serverInterface.getServerCfg();
-        createRegistry(serverCfg.getRegistryPort(), serverCfg.getName(), serverInterface);
+        LocateRegistry.createRegistry(serverCfg.getRegistryPort()).rebind("server", serverInterface);
     }
-
 }

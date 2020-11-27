@@ -2,16 +2,29 @@ package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.*;
 import at.falb.games.alcatraz.api.utilities.GameMove;
+import at.falb.games.alcatraz.api.Alcatraz;
+import at.falb.games.alcatraz.api.ClientInterface;
+import at.falb.games.alcatraz.api.GamePlayer;
+import at.falb.games.alcatraz.api.MoveListener;
+import at.falb.games.alcatraz.api.ServerInterface;
+import at.falb.games.alcatraz.api.utilities.ServerCfg;
+import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
+import org.apache.log4j.LogManager;
+import org.apache.log4j.Logger;
 
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 public class Client extends UnicastRemoteObject implements ClientInterface {
 
     private List<GamePlayer> gamePlayersList;
     private GamePlayer gamePlayer;
+    private static final Logger LOG = LogManager.getLogger(Client.class);
+    private static final List<ServerCfg> ALL_POSSIBLE_SERVERS = ServerClientUtility.getServerCfgList();
     //This is the list of servers, that will be updated every x seconds.
     private final List<ServerInterface> serverList = new ArrayList<>();
     // This Server is used for the first time
@@ -24,11 +37,35 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         this.gamePlayer = gamePlayer;
         this.gamePlayersList = gamePlayersList;
     }
-    //
 
+    private ServerInterface getPrimary(){
+        for (ServerCfg serverCfg: ALL_POSSIBLE_SERVERS){
+            try {
+                ServerCfg primaryServer = ServerClientUtility.lookup(serverCfg).getMainRegistryServer();
+                return ServerClientUtility.lookup(primaryServer);
+            } catch (Exception e) {
+                LOG.error("Server not available: " + serverCfg, e);
+            }
+        }
+        return null;
+    }
 
+    // https://stackoverflow.com/questions/2258066/java-run-a-function-after-a-specific-number-of-seconds
     @Override
     public List<GamePlayer> getGamePlayersList() throws RemoteException {
+        new java.util.Timer().schedule(
+                new java.util.TimerTask() {
+                    @Override
+                    public void run() {
+                        try {
+                            gamePlayersList = Objects.requireNonNull(getPrimary()).getGamePlayersList();
+                        } catch (RemoteException e) {
+                            LOG.error("Cannot get current Players", e);
+                        }
+                    }
+                },
+                5000
+        );
         return gamePlayersList;
     }
 

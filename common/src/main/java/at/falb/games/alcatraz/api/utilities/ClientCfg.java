@@ -1,14 +1,12 @@
 package at.falb.games.alcatraz.api.utilities;
 
 import java.io.Serializable;
-import java.time.LocalDateTime;
 import java.util.Objects;
 
 public class ClientCfg implements Serializable {
     private String name;
     private String ip;
     private int port;
-    private LocalDateTime startTimestamp;
 
     public String getName() {
         return name;
@@ -34,13 +32,6 @@ public class ClientCfg implements Serializable {
         this.port = port;
     }
 
-    public LocalDateTime getStartTimestamp() {
-        return startTimestamp;
-    }
-
-    public void setStartTimestamp(LocalDateTime startTimestamp) {
-        this.startTimestamp = startTimestamp;
-    }
 
     @Override
     public boolean equals(Object o) {
@@ -61,7 +52,6 @@ public class ClientCfg implements Serializable {
                 "name='" + name + '\'' +
                 ", ip='" + ip + '\'' +
                 ", port=" + port +
-                ", startTimestamp=" + startTimestamp +
                 '}';
     }
 }

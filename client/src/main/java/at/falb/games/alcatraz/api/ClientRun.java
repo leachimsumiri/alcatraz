@@ -2,22 +2,43 @@ package at.falb.games.alcatraz.api;
 
 import at.falb.games.alcatraz.api.logic.Client;
 import at.falb.games.alcatraz.api.utilities.*;
+import at.falb.games.alcatraz.api.logic.ClientValues;
+import at.falb.games.alcatraz.api.logic.InputHelper;
+import at.falb.games.alcatraz.api.utilities.JsonHandler;
+import at.falb.games.alcatraz.api.utilities.ServerCfg;
+import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.List;
 
 public class ClientRun {
     private static final Logger LOG = LogManager.getLogger(ClientRun.class);
-    public static final LocalDateTime START_TIMESTAMP = LocalDateTime.now();
-    private static ClientCfg clientCfg;
 
     public static void main(String[] args) {
         try {
+
+            String serverName = args.length == 2 && StringUtils.isNotBlank(args[0]) ? args[0] : ClientValues.MAIN_SERVER;
+            final ServerCfg firstServer = JsonHandler.readServerJson(serverName);
+            final List<ServerCfg> allPossibleServers = ServerClientUtility.getServerCfgList();
+
+            InputHelper.getInstance().welcome();
+            final GamePlayer gamePlayer = InputHelper.getInstance().requestPlayerData();
+
+            ClientInterface client = new Client();
+            client.setGamePlayer(gamePlayer);
+            ServerClientUtility.createRegistry(client);
+            LOG.info("Client started: " + gamePlayer);
+        } catch (Exception e) {
+            LOG.error("It wasn't possible to start the client", e);
+        }
+        try {
+            LocalDateTime START_TIMESTAMP = LocalDateTime.now();
             String serverName = args.length == 2 && StringUtils.isNotBlank(args[1]) ? args[1] : ClientValues.MAIN_SERVER;
-            clientCfg = JsonHandler.readClientJson(args[0]);
+            ClientCfg clientCfg = JsonHandler.readClientJson(args[0]);
             clientCfg.setStartTimestamp(START_TIMESTAMP);
             final GamePlayer gamePlayer = new GamePlayer();
             gamePlayer.setName(clientCfg.getName());
@@ -76,9 +97,5 @@ public class ClientRun {
         } catch (Exception e) {
             LOG.error("It wasn't possible to start the client", e);
         }
-    }
-
-    public static ClientCfg getClientCfg() {
-        return clientCfg;
     }
 }
