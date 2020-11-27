@@ -13,6 +13,7 @@ import spread.SpreadGroup;
 import spread.SpreadMessage;
 
 import java.rmi.RemoteException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -62,6 +63,22 @@ public class SpreadMessageListener implements AdvancedMessageListener {
             LOG.info(String.format("Current Group View: %s", Server.getActualServersList()));
         } catch (SpreadException | RemoteException e) {
             LOG.error("It wasn't possible to announce the group about that a new server is running", e);
+        }
+
+        try {
+            // check if this is the main registry server
+            if(spreadMessage.getMembershipInfo().isRegularMembership() &&
+                    Server.getThisServer().getServerCfg().getName().equals(Server.getThisServer().getMainRegistryServer().getName())) {
+                LOG.info("#################################################################################################################################################");
+                LOG.info("Main Registry sharing gameplayerlist info with newly joined server");
+                LOG.info("Current Server: " + Server.getThisServer().getServerCfg().getName());
+                LOG.info("Main Registry: " + Server.getThisServer().getMainRegistryServer().getName());
+
+                Server.announceToGroup((ArrayList<GamePlayer>) Server.getThisServer().getGamePlayersList());
+                LOG.info("#################################################################################################################################################");
+            }
+        } catch (RemoteException | SpreadException e) {
+            e.printStackTrace();
         }
     }
 
