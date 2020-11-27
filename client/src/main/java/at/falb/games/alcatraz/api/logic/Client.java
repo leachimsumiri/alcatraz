@@ -12,7 +12,6 @@ import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -20,11 +19,10 @@ import java.util.List;
 import java.util.Objects;
 
 public class Client extends UnicastRemoteObject implements ClientInterface {
-
-    private List<GamePlayer> gamePlayersList;
-    private GamePlayer gamePlayer;
     private static final Logger LOG = LogManager.getLogger(Client.class);
     private static final List<ServerCfg> ALL_POSSIBLE_SERVERS = ServerClientUtility.getServerCfgList();
+    private List<GamePlayer> gamePlayersList = new ArrayList<>();
+    private GamePlayer gamePlayer = new GamePlayer();
     //This is the list of servers, that will be updated every x seconds.
     private final List<ServerInterface> serverList = new ArrayList<>();
     // This Server is used for the first time
@@ -33,9 +31,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     private Alcatraz game = new Alcatraz();
     private MoveListener listener;
 
-    public Client(GamePlayer gamePlayer, List<GamePlayer> gamePlayersList) throws RemoteException {
-        this.gamePlayer = gamePlayer;
-        this.gamePlayersList = gamePlayersList;
+    public Client() throws RemoteException {
     }
 
     private ServerInterface getPrimary(){
@@ -102,10 +98,10 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
 
     @Override
-    public void startGame(){
-        this.game.init(this.gamePlayersList.size() + 1, this.gamePlayer.getId());
+    public void startGame(List<GamePlayer> gamePlayersList){
+        this.game.init(gamePlayersList.size(), this.gamePlayer.getId());
 
-        this.listener = new GameMoveListener(this.gamePlayersList);
+        this.listener = new GameMoveListener(gamePlayersList);
         this.game.addMoveListener(this.listener);
 
         this.game.showWindow();
