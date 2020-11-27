@@ -58,11 +58,20 @@ public class InputHelper {
         Out.println(message);
     }
 
-    private String getIpAddress() throws UnknownHostException {
+    /**
+     * Public in order to use for testing
+     * @return {@link InetAddress#getLocalHost()#getHostAddress()}
+     * @throws UnknownHostException
+     */
+    public String getIpAddress() throws UnknownHostException {
         return InetAddress.getLocalHost().getHostAddress();
     }
 
-    private int findAvailablePort() {
+    /**
+     * Public in order to use for testing
+     * @return a available port
+     */
+    public int findAvailablePort() {
         int initialPort = PORT_FROM;
         do {
             try (Socket ignored = new Socket(getIpAddress(), initialPort)) {
