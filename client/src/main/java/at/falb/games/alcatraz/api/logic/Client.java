@@ -25,7 +25,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     private GamePlayer gamePlayer = new GamePlayer();
     //This is the list of servers, that will be updated every x seconds.
     private final List<ServerInterface> serverList = new ArrayList<>();
-    // This Server is used for the first time
+    // This ServergetMainRegistryServer is used for the first time
     private ServerInterface mainRegistryServer;
 
     private Alcatraz game = new Alcatraz();

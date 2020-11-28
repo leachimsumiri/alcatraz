@@ -1,7 +1,6 @@
-package at.falb.games.alcatraz.api.group.communication;
+package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.GamePlayer;
-import at.falb.games.alcatraz.api.logic.Server;
 import at.falb.games.alcatraz.api.utilities.GameStatus;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import org.apache.commons.collections4.CollectionUtils;
@@ -24,9 +23,9 @@ public class SpreadMessageListener implements AdvancedMessageListener {
     public void regularMessageReceived(SpreadMessage spreadMessage) {
         try {
             final Object spreadMessageObject = spreadMessage.getObject();
-            LOG.info("Received UpdateMessage:");
-            LOG.info("Message from: " + spreadMessage.getSender());
-            LOG.info("Message: " + spreadMessageObject.toString());
+            LOG.info(String.format("Received UpdateMessage from: %s content: %s",
+                    spreadMessage.getSender(),
+                    spreadMessageObject.toString()));
             if (spreadMessageObject instanceof List<?>) {
                 List<?> listOfObjects = (List<?>) spreadMessageObject;
                 if (CollectionUtils.isNotEmpty(listOfObjects)) {
@@ -39,9 +38,10 @@ public class SpreadMessageListener implements AdvancedMessageListener {
                 }
             } else if (spreadMessageObject instanceof ServerCfg) {
                 Server.updateActualServersList((ServerCfg) spreadMessageObject);
-
             } else if (spreadMessageObject instanceof GameStatus) {
                 Server.setGameStatus((GameStatus) spreadMessageObject);
+            } else if (spreadMessageObject instanceof UpdateGroup) {
+                Server.updateTheGroup((UpdateGroup) spreadMessageObject);
             } else {
                 throw new Exception("This object type is unknown: " + spreadMessageObject.getClass().getSimpleName());
             }

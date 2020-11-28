@@ -18,6 +18,7 @@ import spread.SpreadMessage;
 
 import java.net.UnknownHostException;
 import java.rmi.RemoteException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -61,10 +62,10 @@ class ServerTest {
     }
 
     @Test
-    void updateActualServersList() {
+    void updateActualServersList() throws SpreadException {
         final ServerCfg server2 = new ServerCfg();
         server2.setName("server2");
-        //This is to simulate the at.falb.games.alcatraz.api.group.communication.SpreadMessageListener.membershipMessageReceived when adding a new server
+        //This is to simulate the at.falb.games.alcatraz.api.logic.SpreadMessageListener.membershipMessageReceived when adding a new server
         Server.getActualServersList().add(serverCfg);
         Server.getActualServersList().add(server2);
 
@@ -154,32 +155,36 @@ class ServerTest {
 
     @Test
     void getActiveServers() {
+        final ServerCfg server2 = new ServerCfg("server");
+        server2.setStartTimestamp(LocalDateTime.now().plusSeconds(1));
+        Server.getActualServersList().add(server2);
         Server.getActualServersList().add(serverCfg);
-        Server.getActualServersList().add(new ServerCfg("server"));
 
-        List<ServerCfg> activeServers = server.getActiveServers();
+        List<ServerCfg> activeServers = server.getListOfServersWithStartTimestamp();
 
         assertEquals(2, activeServers.size());
 
         Server.getActualServersList().remove(serverCfg);
 
-        activeServers = server.getActiveServers();
+        activeServers = server.getListOfServersWithStartTimestamp();
 
         assertEquals(1, activeServers.size());
     }
 
     @Test
     void getMainServers() {
+        final ServerCfg server2 = new ServerCfg("server");
+        server2.setStartTimestamp(LocalDateTime.now().plusSeconds(1));
+        Server.getActualServersList().add(server2);
         Server.getActualServersList().add(serverCfg);
-        Server.getActualServersList().add(new ServerCfg("server"));
 
-        ServerCfg activeServers = server.getMainRegistryServer();
+        ServerCfg activeServers = this.server.getMainRegistryServer();
 
         assertEquals(serverCfg.getStartTimestamp(), activeServers.getStartTimestamp());
 
         Server.getActualServersList().remove(serverCfg);
 
-        activeServers = server.getMainRegistryServer();
+        activeServers = this.server.getMainRegistryServer();
 
         assertEquals(Server.getActualServersList().get(0).getStartTimestamp(), activeServers.getStartTimestamp());
     }

@@ -26,6 +26,13 @@ public class ClientRun {
             client.setGamePlayer(gamePlayer);
             ServerClientUtility.createRegistry(client);
             LOG.info("Client started: " + gamePlayer);
+
+            LOG.info("Lookup first server from config file...");
+            ServerInterface server = ServerClientUtility.lookup(firstServer);
+            LOG.info("Getting primary server from registry server");
+            ServerCfg primaryServerCfg = server.getMainRegistryServer();
+            LOG.info("Lookup primary server stub");
+            ServerClientUtility.lookup(primaryServerCfg).register(gamePlayer);
         } catch (Exception e) {
             LOG.error("It wasn't possible to start the client", e);
         }
