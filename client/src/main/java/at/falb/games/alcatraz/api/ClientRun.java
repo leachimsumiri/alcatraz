@@ -1,5 +1,7 @@
 package at.falb.games.alcatraz.api;
 
+import at.falb.games.alcatraz.api.exceptions.BeginGameException;
+import at.falb.games.alcatraz.api.exceptions.GamePlayerException;
 import at.falb.games.alcatraz.api.logic.Client;
 import at.falb.games.alcatraz.api.utilities.*;
 import at.falb.games.alcatraz.api.logic.InputHelper;
@@ -20,11 +22,49 @@ public class ClientRun {
             final ServerCfg firstServer = JsonHandler.readServerJson(serverName);
 
             InputHelper.getInstance().welcome();
-            final GamePlayer gamePlayer = InputHelper.getInstance().requestPlayerData();
 
+            GamePlayer gamePlayer = InputHelper.getInstance().requestPlayerSocket();
+
+            boolean playerRegistered = false;
             ClientInterface client = new Client();
             client.setGamePlayer(gamePlayer);
             ServerClientUtility.createRegistry(client);
+            //UpdatePlayerThread thread = new UpdatePlayerThread(client);
+            //thread.start();
+
+            do {
+                try {
+                    String name = InputHelper.getInstance().requestPlayerName();
+                    gamePlayer.setName(name);
+                    int id = client.getPrimary().register(gamePlayer);
+                    gamePlayer.setId(id);
+                    playerRegistered = true;
+                } catch (Exception e) {
+                    LOG.error(e.getMessage());
+                }
+            } while (!playerRegistered);
+
+            client.setGamePlayer(gamePlayer);
+
+            while (client.getPrimary().getGameStatus().equals(GameStatus.NOT_STARTED)) {
+                try {
+                    InputHelper.getInstance().printLobbyWelcome();
+                    String action = InputHelper.getInstance().printLobby();
+                    switch (action) {
+                        case "d":
+                            client.getPrimary().deregister(gamePlayer);
+                            break;
+                        case "s":
+                            client.getPrimary().beginGame();
+                            break;
+                    }
+                } catch (BeginGameException | GamePlayerException e) {
+                    InputHelper.getInstance().printError(e.getMessage());
+                    LOG.error(e.getMessage());
+                }
+            }
+
+
             LOG.info("Client started: " + gamePlayer);
 
             LOG.info("Lookup first server from config file...");
