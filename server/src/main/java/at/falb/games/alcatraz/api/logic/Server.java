@@ -24,6 +24,7 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -237,9 +238,13 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
     @Override
     public ServerCfg getMainRegistryServer() {
-        final ServerCfg mainRegistryServer = ServerClientUtility.getMainRegistryServer(getListOfServersWithStartTimestamp());
-        LOG.info("Main register server: " + mainRegistryServer);
-        return mainRegistryServer;
+        final Optional<ServerCfg> optionalServerCfg = actualServersList
+                .stream()
+                .filter(s -> s.getStartTimestamp() != null)
+                .min(Comparator.comparing(ServerCfg::getStartTimestamp));
+        assert optionalServerCfg.isPresent();
+        LOG.info("Main register server: " + optionalServerCfg.get());
+        return optionalServerCfg.get();
     }
 
     @Override
