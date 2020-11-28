@@ -11,6 +11,7 @@ import java.net.Socket;
 import java.net.URLEncoder;
 import java.net.UnknownHostException;
 import java.nio.charset.StandardCharsets;
+import java.util.List;
 import java.util.Scanner;
 
 public class InputHelper {
@@ -32,19 +33,21 @@ public class InputHelper {
         return instance;
     }
 
-    public GamePlayer requestPlayerData() throws IOException {
-
+    public GamePlayer requestPlayerSocket()  throws IOException {
         final GamePlayer playa = new GamePlayer();
 
-        final String name = requestName();
         final String ip = getIpAddress();
         final int port = findAvailablePort();
 
-        playa.setName(URLEncoder.encode(name, StandardCharsets.UTF_8));
         playa.setPort(port);
         playa.setIP(ip);
 
         return playa;
+    }
+
+    public String requestPlayerName() {
+        final String name = requestName();
+        return URLEncoder.encode(name, StandardCharsets.UTF_8);
     }
 
 
@@ -82,6 +85,31 @@ public class InputHelper {
             }
         } while (initialPort < PORT_TO);
         return initialPort;
+    }
+
+
+
+    public void printLobbyWelcome() {
+        sendOutput("");
+        sendOutput("//////////////////////////////////////////////////");
+        sendOutput("Welcome to the lobby - Let's wait for more players");
+    }
+
+    public void printPlayerList(List<GamePlayer> gamePlayerList) {
+        sendOutput("The current registered players are:");
+        for (GamePlayer gamePlayer:gamePlayerList) {
+            sendOutput(gamePlayer.getName());
+        }
+        sendOutput("--------------------------------------------------");
+    }
+
+    public String printLobby() {
+        sendOutput("Enter d to deregister or s to start the game");
+        return getInput("Key");
+    }
+
+    public void printError(String msg) {
+        sendOutput("!!!!!!!!!!!!! " + msg + " !!!!!!!!!!!!!");
     }
 
 

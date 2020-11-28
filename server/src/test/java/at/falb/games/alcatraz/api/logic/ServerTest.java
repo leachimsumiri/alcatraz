@@ -16,7 +16,9 @@ import spread.SpreadConnection;
 import spread.SpreadException;
 import spread.SpreadMessage;
 
+import java.net.MalformedURLException;
 import java.net.UnknownHostException;
+import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.util.List;
 import java.util.stream.Stream;
@@ -79,11 +81,11 @@ class ServerTest {
     }
 
     @Test
-    void registerAllPlayersSuccessfully() throws SpreadException, GamePlayerException {
+    void registerAllPlayersSuccessfully() throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
         registerAllUsersAndAssert();
     }
 
-    private void registerAllUsersAndAssert() throws SpreadException, GamePlayerException {
+    private void registerAllUsersAndAssert() throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
         for (int i = 0; i < ServerValues.MAX_PLAYERS; i++) {
             final GamePlayer gamePlayer = new GamePlayer();
             gamePlayer.setName("game" + i);
@@ -119,7 +121,7 @@ class ServerTest {
     }
 
     @Test
-    void deregisterAnExistingGamePlayer() throws SpreadException, GamePlayerException {
+    void deregisterAnExistingGamePlayer() throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
         final GamePlayer gamePlayer = new GamePlayer();
         gamePlayer.setName("game");
         server.getGamePlayersList().add(gamePlayer);
@@ -142,7 +144,7 @@ class ServerTest {
 
     @ParameterizedTest
     @ValueSource(ints = {0, 1, 2, 3})
-    void registerAPlayerWhenThePortIsFree(int id) throws SpreadException, GamePlayerException {
+    void registerAPlayerWhenThePortIsFree(int id) throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
         registerAllUsersAndAssert();
         final GamePlayer gamePlayerToDeregister = server.getGamePlayersList().get(id);
         server.deregister(gamePlayerToDeregister);

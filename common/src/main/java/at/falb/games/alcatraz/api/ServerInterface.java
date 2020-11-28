@@ -23,9 +23,9 @@ public interface ServerInterface extends Remote {
      * @throws SpreadException when its not possible to announce to the other servers, that a new GamePlayer wants to register
      * @throws GamePlayerException when the GamePlayer cannot register, because the maximum number of player was reached or the name already exists
      */
-    int register(GamePlayer player) throws SpreadException, RemoteException, GamePlayerException;
+    int register(GamePlayer player) throws SpreadException, RemoteException, GamePlayerException, NotBoundException, MalformedURLException;
 
-    void deregister(GamePlayer player) throws SpreadException, RemoteException, GamePlayerException;
+    void deregister(GamePlayer player) throws SpreadException, RemoteException, GamePlayerException, NotBoundException, MalformedURLException;
 
     List<ServerCfg> getActiveServers() throws RemoteException;
 

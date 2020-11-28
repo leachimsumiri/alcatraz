@@ -34,7 +34,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     public Client() throws RemoteException {
     }
 
-    private ServerInterface getPrimary(){
+    @Override
+    public ServerInterface getPrimary(){
         for (ServerCfg serverCfg: ALL_POSSIBLE_SERVERS){
             try {
                 ServerCfg primaryServer = ServerClientUtility.lookup(serverCfg).getMainRegistryServer();
@@ -46,22 +47,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         return null;
     }
 
-    // https://stackoverflow.com/questions/2258066/java-run-a-function-after-a-specific-number-of-seconds
     @Override
-    public List<GamePlayer> getGamePlayersList() throws RemoteException {
-        new java.util.Timer().schedule(
-                new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        try {
-                            gamePlayersList = Objects.requireNonNull(getPrimary()).getGamePlayersList();
-                        } catch (RemoteException e) {
-                            LOG.error("Cannot get current Players", e);
-                        }
-                    }
-                },
-                5000
-        );
+    public List<GamePlayer> getGamePlayersList() {
         return gamePlayersList;
     }
 
