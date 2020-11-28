@@ -1,7 +1,6 @@
 package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.*;
-import at.falb.games.alcatraz.api.exceptions.GamePlayerException;
 import at.falb.games.alcatraz.api.utilities.GameMove;
 import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.ClientInterface;
@@ -12,7 +11,6 @@ import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
-import spread.SpreadException;
 
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
@@ -46,17 +44,6 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
             }
         }
         return null;
-    }
-
-    @Override
-    public void register() {
-        try {
-            int id = getPrimary().register(gamePlayer);
-            gamePlayer.setId(id);
-            getPrimary().beginGame();
-        } catch (Exception e) {
-            LOG.error("Cannot register client", e);
-        }
     }
 
     // https://stackoverflow.com/questions/2258066/java-run-a-function-after-a-specific-number-of-seconds
@@ -100,19 +87,23 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
             this.game.doMove(player, gameMove.getPrisoner(), gameMove.getRowOrCol(), gameMove.getRow(),
                     gameMove.getColumn());
         } catch (IllegalMoveException e) {
-            e.printStackTrace();
+            LOG.error("Something went wrong when communication move to game", e);
         }
     }
 
     @Override
     public void nextTurn(GamePlayer player) throws RemoteException {
-        System.out.println("Received next turn message");
+        LOG.info("Received next turn message");
     }
 
 
     @Override
     public void startGame(List<GamePlayer> gamePlayersList){
-        this.game.init(gamePlayersList.size(), this.gamePlayer.getId());
+        try {
+            this.game.init(gamePlayersList.size(), this.gamePlayer.getId());
+        } catch (Exception e) {
+            LOG.error("Something went wrong when initializing game", e);
+        }
 
         this.listener = new GameMoveListener(gamePlayersList);
         this.game.addMoveListener(this.listener);

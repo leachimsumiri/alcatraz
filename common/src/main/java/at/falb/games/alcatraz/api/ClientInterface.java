@@ -7,8 +7,6 @@ import java.rmi.RemoteException;
 import java.util.List;
 
 public interface ClientInterface extends Remote {
-    void register() throws RemoteException;
-
     List<GamePlayer> getGamePlayersList() throws RemoteException;
 
     void setGamePlayersList(List<GamePlayer> gamePlayersList) throws RemoteException;
