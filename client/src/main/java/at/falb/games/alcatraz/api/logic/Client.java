@@ -1,5 +1,7 @@
 package at.falb.games.alcatraz.api.logic;
 
+import at.falb.games.alcatraz.api.*;
+import at.falb.games.alcatraz.api.utilities.GameMove;
 import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.ClientInterface;
 import at.falb.games.alcatraz.api.GamePlayer;
@@ -10,7 +12,6 @@ import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -26,6 +27,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     private final List<ServerInterface> serverList = new ArrayList<>();
     // This Server is used for the first time
     private ServerInterface mainRegistryServer;
+
+    private Alcatraz game = new Alcatraz();
+    private MoveListener listener;
 
     public Client() throws RemoteException {
     }
@@ -76,17 +80,35 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         this.gamePlayer = gamePlayer;
     }
 
+
     @Override
-    public void startGame(List<GamePlayer> playerList) {
-        Alcatraz game = new Alcatraz();
-        game.init(playerList.size(), this.gamePlayer.getId());
+    public void move(Player player, GameMove gameMove) throws RemoteException {
+        try {
+            this.game.doMove(player, gameMove.getPrisoner(), gameMove.getRowOrCol(), gameMove.getRow(),
+                    gameMove.getColumn());
+        } catch (IllegalMoveException e) {
+            LOG.error("Something went wrong when communication move to game", e);
+        }
+    }
 
-        MoveListener listener = new GameMoveListener(playerList);
-        game.addMoveListener(listener);
-
-        game.showWindow();
-        game.start();
+    @Override
+    public void nextTurn(GamePlayer player) throws RemoteException {
+        LOG.info("Received next turn message");
     }
 
 
+    @Override
+    public void startGame(List<GamePlayer> gamePlayersList){
+        try {
+            this.game.init(gamePlayersList.size(), this.gamePlayer.getId());
+        } catch (Exception e) {
+            LOG.error("Something went wrong when initializing game", e);
+        }
+
+        this.listener = new GameMoveListener(gamePlayersList);
+        this.game.addMoveListener(this.listener);
+
+        this.game.showWindow();
+        this.game.start();
+    }
 }

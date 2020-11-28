@@ -1,4 +1,4 @@
-package at.falb.games.alcatraz.api.logic;
+package at.falb.games.alcatraz.api.utilities;
 
 public class ClientValues {
     private ClientValues() {
