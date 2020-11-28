@@ -3,6 +3,7 @@ package at.falb.games.alcatraz.api.ui;
 import at.falb.games.alcatraz.api.ClientInterface;
 import at.falb.games.alcatraz.api.ClientRun;
 import at.falb.games.alcatraz.api.GamePlayer;
+import at.falb.games.alcatraz.api.exceptions.BeginGameException;
 import at.falb.games.alcatraz.api.exceptions.GamePlayerException;
 import at.falb.games.alcatraz.api.logic.Client;
 import at.falb.games.alcatraz.api.logic.InputHelper;
@@ -17,7 +18,9 @@ import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.io.IOException;
+import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
+import java.rmi.RemoteException;
 
 public class JFrameImpl {
     private static final Logger LOG = LogManager.getLogger(ClientRun.class);
@@ -27,7 +30,9 @@ public class JFrameImpl {
         g.drawString("Hello to JavaTutorial.net", 10, 10);
     }
 
-    public static void main(String[] args){
+    public static void main(String[] args) throws RemoteException {
+
+        ClientInterface client = new Client();
 
         // https://javatutorial.net/swing-jframe-basics-create-jframe
         JFrame frame= new JFrame(gc);
@@ -74,21 +79,20 @@ public class JFrameImpl {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
-                GamePlayer gamePlayer = null;
                 String name;
+                GamePlayer gamePlayer = null;
                 try {
-                    //TODO: logic
-                    /*gamePlayer = InputHelper.getInstance().requestPlayerSocket();
-                    ClientInterface client = new Client();
+                    //TODO: logic - working?
+                    gamePlayer = InputHelper.getInstance().requestPlayerSocket();
                     client.setGamePlayer(gamePlayer);
-                    ServerClientUtility.createRegistry(client);*/
+                    ServerClientUtility.createRegistry(client);
                     name = textfield1.getText();
-                    if(StringUtils.isEmpty(name)){
+                    if (StringUtils.isEmpty(name)) {
                         name = "MaxMustermann";
                     }
-                    /*gamePlayer.setName(name);
+                    gamePlayer.setName(name);
                     int id = client.getPrimary().register(gamePlayer);
-                    gamePlayer.setId(id);*/
+                    gamePlayer.setId(id);
 
                     // layout
                     textfield1.setText(name);
@@ -97,27 +101,27 @@ public class JFrameImpl {
                     startGameButton.setEnabled(true);
                     deregisterButton.setEnabled(true);
 
-                /*} catch (IOException e) {
-                    e.printStackTrace();
-                } catch (NotBoundException e) {
-                    e.printStackTrace();
-                } catch (GamePlayerException e) {
-                    e.printStackTrace();
-                } catch (SpreadException e) {
-                    e.printStackTrace();
-                }*/
-
-
-                } catch (Exception e) {
+                } catch (IOException | SpreadException | GamePlayerException | NotBoundException e) {
                     e.printStackTrace();
                 }
-
             }
         });
+
         startGameButton.addActionListener(new ActionListener() {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
+
+                //TODO: logic start game - working?
+                try {
+                    client.getPrimary().beginGame();
+                } catch (RemoteException | SpreadException | BeginGameException | NotBoundException | MalformedURLException e) {
+                    e.printStackTrace();
+                }
+
+                //close Jframe window
+                frame.setVisible(false);
+                frame.dispose();
 
             }
         });
@@ -126,6 +130,13 @@ public class JFrameImpl {
 
             @Override
             public void actionPerformed(ActionEvent arg0) {
+
+                // TODO: logic
+                /*try {
+                    client.getPrimary().deregister(gamePlayer);
+                } catch (SpreadException | RemoteException | GamePlayerException | NotBoundException | MalformedURLException e) {
+                    e.printStackTrace();
+                }*/
 
                 // graphics
                 textfield1.setText(null);
