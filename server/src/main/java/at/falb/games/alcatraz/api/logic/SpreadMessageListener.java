@@ -1,7 +1,6 @@
-package at.falb.games.alcatraz.api.group.communication;
+package at.falb.games.alcatraz.api.logic;
 
 import at.falb.games.alcatraz.api.GamePlayer;
-import at.falb.games.alcatraz.api.logic.Server;
 import at.falb.games.alcatraz.api.utilities.GameStatus;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import org.apache.commons.collections4.CollectionUtils;
@@ -13,7 +12,6 @@ import spread.SpreadGroup;
 import spread.SpreadMessage;
 
 import java.rmi.RemoteException;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -25,9 +23,9 @@ public class SpreadMessageListener implements AdvancedMessageListener {
     public void regularMessageReceived(SpreadMessage spreadMessage) {
         try {
             final Object spreadMessageObject = spreadMessage.getObject();
-            LOG.info("Received UpdateMessage:");
-            LOG.info("Message from: " + spreadMessage.getSender());
-            LOG.info("Message: " + spreadMessageObject.toString());
+            LOG.info(String.format("Received UpdateMessage from: %s content: %s",
+                    spreadMessage.getSender(),
+                    spreadMessageObject.toString()));
             if (spreadMessageObject instanceof List<?>) {
                 List<?> listOfObjects = (List<?>) spreadMessageObject;
                 if (CollectionUtils.isNotEmpty(listOfObjects)) {
@@ -40,9 +38,10 @@ public class SpreadMessageListener implements AdvancedMessageListener {
                 }
             } else if (spreadMessageObject instanceof ServerCfg) {
                 Server.updateActualServersList((ServerCfg) spreadMessageObject);
-
             } else if (spreadMessageObject instanceof GameStatus) {
                 Server.setGameStatus((GameStatus) spreadMessageObject);
+            } else if (spreadMessageObject instanceof UpdateGroup) {
+                Server.updateTheGroup((UpdateGroup) spreadMessageObject);
             } else {
                 throw new Exception("This object type is unknown: " + spreadMessageObject.getClass().getSimpleName());
             }
@@ -63,22 +62,6 @@ public class SpreadMessageListener implements AdvancedMessageListener {
             LOG.info(String.format("Current Group View: %s", Server.getActualServersList()));
         } catch (SpreadException | RemoteException e) {
             LOG.error("It wasn't possible to announce the group about that a new server is running", e);
-        }
-
-        try {
-            // check if this is the main registry server
-            if(spreadMessage.getMembershipInfo().isRegularMembership() &&
-                    Server.getThisServer().getServerCfg().getName().equals(Server.getThisServer().getMainRegistryServer().getName())) {
-                LOG.info("#################################################################################################################################################");
-                LOG.info("Main Registry sharing gameplayerlist info with newly joined server");
-                LOG.info("Current Server: " + Server.getThisServer().getServerCfg().getName());
-                LOG.info("Main Registry: " + Server.getThisServer().getMainRegistryServer().getName());
-
-                Server.announceToGroup((ArrayList<GamePlayer>) Server.getThisServer().getGamePlayersList());
-                LOG.info("#################################################################################################################################################");
-            }
-        } catch (RemoteException | SpreadException e) {
-            e.printStackTrace();
         }
     }
 
