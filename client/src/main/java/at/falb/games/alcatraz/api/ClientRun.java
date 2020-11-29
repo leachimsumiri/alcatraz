@@ -4,6 +4,7 @@ import at.falb.games.alcatraz.api.exceptions.BeginGameException;
 import at.falb.games.alcatraz.api.exceptions.GamePlayerException;
 import at.falb.games.alcatraz.api.logic.Client;
 import at.falb.games.alcatraz.api.logic.SocketHelper;
+import at.falb.games.alcatraz.api.utilities.CommonValues;
 import at.falb.games.alcatraz.api.utilities.JsonHandler;
 import at.falb.games.alcatraz.api.utilities.PlayerStatus;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
@@ -35,11 +36,17 @@ public class ClientRun {
     private static JTextArea playerListTextArea;
 
     public static void main(String[] args) throws RemoteException {
+        assert CommonValues.RESOURCE != null && CommonValues.RESOURCE.getPath() != null;
+        System.setProperty(CommonValues.javaSecurityPolicyKey, CommonValues.RESOURCE.toString());
         client = new Client();
         try {
             JsonHandler.readServerJson();
             gamePlayer = SocketHelper.getInstance().requestPlayerSocket();
+            System.setProperty(CommonValues.javaRmiServerHostname, gamePlayer.getIp());
             client.setGamePlayer(gamePlayer);
+            if (System.getSecurityManager() == null) {
+                System.setSecurityManager(new SecurityManager());
+            }
             ServerClientUtility.createRegistry(client);
             LOG.info("Client started: " + gamePlayer);
         } catch (Exception e) {
