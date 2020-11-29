@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import spread.SpreadConnection;
@@ -82,21 +81,6 @@ class ServerTest {
     }
 
     @Test
-    void registerAllPlayersSuccessfully() throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
-        registerAllUsersAndAssert();
-    }
-
-    private void registerAllUsersAndAssert() throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
-        for (int i = 0; i < ServerValues.MAX_PLAYERS; i++) {
-            final GamePlayer gamePlayer = new GamePlayer();
-            gamePlayer.setName("game" + i);
-            final int id = server.register(gamePlayer);
-            verify(connection, times(2 + i)).multicast((SpreadMessage) any());
-            assertEquals(i, id);
-        }
-    }
-
-    @Test
     void registerMaxPlayersReached() throws RemoteException {
         for (int i = 0; i < ServerValues.MAX_PLAYERS; i++) {
             final GamePlayer gamePlayer = new GamePlayer();
@@ -141,18 +125,6 @@ class ServerTest {
     @MethodSource("registerPlayersFail")
     void deregisterPlayersFailed(GamePlayer gamePlayer) {
         assertThrows(GamePlayerException.class, () -> server.deregister(gamePlayer));
-    }
-
-    @ParameterizedTest
-    @ValueSource(ints = {0, 1, 2, 3})
-    void registerAPlayerWhenThePortIsFree(int id) throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
-        registerAllUsersAndAssert();
-        final GamePlayer gamePlayerToDeregister = server.getGamePlayersList().get(id);
-        server.deregister(gamePlayerToDeregister);
-
-        final int actualId = server.register(new GamePlayer("game" + id));
-
-        assertEquals(id, actualId);
     }
 
     @Test

@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class Server extends UnicastRemoteObject implements ServerInterface {
@@ -223,6 +224,9 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         }
 
         gamePlayerList.remove(gamePlayer);
+        AtomicInteger repairId = new AtomicInteger();
+        gamePlayerList.forEach(p -> p.setId(repairId.getAndIncrement()));
+
         announceToGroup((Serializable) gamePlayerList);
         updateClientsPlayersList();
         LOG.info(String.format("Player %d removed!!", gamePlayer.getId()));
