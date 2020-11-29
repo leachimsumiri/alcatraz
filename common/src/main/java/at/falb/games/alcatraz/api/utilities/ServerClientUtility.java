@@ -17,8 +17,7 @@ import java.util.Optional;
 
 public final class ServerClientUtility {
     //These lists have the configurations of the clients and servers
-    private static final List<ServerCfg> serverCfgList = new ArrayList<>();
-    private static final List<ClientCfg> clientCfgList = new ArrayList<>();
+    private static final List<ServerCfg> SERVER_CFG_LIST = new ArrayList<>();
 
     // The servers and clients differentiate by their socket
     private static final String RMI_URL = "rmi://localhost:%d";
@@ -30,11 +29,7 @@ public final class ServerClientUtility {
     }
 
     public static List<ServerCfg> getServerCfgList() {
-        return serverCfgList;
-    }
-
-    public static List<ClientCfg> getClientCfgList() {
-        return clientCfgList;
+        return SERVER_CFG_LIST;
     }
 
     /**

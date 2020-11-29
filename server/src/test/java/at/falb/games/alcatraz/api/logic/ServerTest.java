@@ -9,7 +9,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.MethodSource;
-import org.junit.jupiter.params.provider.ValueSource;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 import spread.SpreadConnection;
@@ -20,6 +19,7 @@ import java.net.MalformedURLException;
 import java.net.UnknownHostException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -63,10 +63,10 @@ class ServerTest {
     }
 
     @Test
-    void updateActualServersList() {
+    void updateActualServersList() throws SpreadException {
         final ServerCfg server2 = new ServerCfg();
         server2.setName("server2");
-        //This is to simulate the at.falb.games.alcatraz.api.group.communication.SpreadMessageListener.membershipMessageReceived when adding a new server
+        //This is to simulate the at.falb.games.alcatraz.api.logic.SpreadMessageListener.membershipMessageReceived when adding a new server
         Server.getActualServersList().add(serverCfg);
         Server.getActualServersList().add(server2);
 
@@ -78,21 +78,6 @@ class ServerTest {
         Server.updateActualServersList(server2);
         assertEquals(2, Server.getActualServersList().size());
         assertTrue(Server.getActualServersList().contains(server2), "The collection should contain server2");
-    }
-
-    @Test
-    void registerAllPlayersSuccessfully() throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
-        registerAllUsersAndAssert();
-    }
-
-    private void registerAllUsersAndAssert() throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
-        for (int i = 0; i < ServerValues.MAX_PLAYERS; i++) {
-            final GamePlayer gamePlayer = new GamePlayer();
-            gamePlayer.setName("game" + i);
-            final int id = server.register(gamePlayer);
-            verify(connection, times(2 + i)).multicast((SpreadMessage) any());
-            assertEquals(i, id);
-        }
     }
 
     @Test
@@ -142,46 +127,38 @@ class ServerTest {
         assertThrows(GamePlayerException.class, () -> server.deregister(gamePlayer));
     }
 
-    @ParameterizedTest
-    @ValueSource(ints = {0, 1, 2, 3})
-    void registerAPlayerWhenThePortIsFree(int id) throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
-        registerAllUsersAndAssert();
-        final GamePlayer gamePlayerToDeregister = server.getGamePlayersList().get(id);
-        server.deregister(gamePlayerToDeregister);
-
-        final int actualId = server.register(new GamePlayer("game" + id));
-
-        assertEquals(id, actualId);
-    }
-
     @Test
     void getActiveServers() {
+        final ServerCfg server2 = new ServerCfg("server");
+        server2.setStartTimestamp(LocalDateTime.now().plusSeconds(1));
+        Server.getActualServersList().add(server2);
         Server.getActualServersList().add(serverCfg);
-        Server.getActualServersList().add(new ServerCfg("server"));
 
-        List<ServerCfg> activeServers = server.getActiveServers();
+        List<ServerCfg> activeServers = server.getListOfServersWithStartTimestamp();
 
         assertEquals(2, activeServers.size());
 
         Server.getActualServersList().remove(serverCfg);
 
-        activeServers = server.getActiveServers();
+        activeServers = server.getListOfServersWithStartTimestamp();
 
         assertEquals(1, activeServers.size());
     }
 
     @Test
     void getMainServers() {
+        final ServerCfg server2 = new ServerCfg("server");
+        server2.setStartTimestamp(LocalDateTime.now().plusSeconds(1));
+        Server.getActualServersList().add(server2);
         Server.getActualServersList().add(serverCfg);
-        Server.getActualServersList().add(new ServerCfg("server"));
 
-        ServerCfg activeServers = server.getMainRegistryServer();
+        ServerCfg activeServers = this.server.getMainRegistryServer();
 
         assertEquals(serverCfg.getStartTimestamp(), activeServers.getStartTimestamp());
 
         Server.getActualServersList().remove(serverCfg);
 
-        activeServers = server.getMainRegistryServer();
+        activeServers = this.server.getMainRegistryServer();
 
         assertEquals(Server.getActualServersList().get(0).getStartTimestamp(), activeServers.getStartTimestamp());
     }
