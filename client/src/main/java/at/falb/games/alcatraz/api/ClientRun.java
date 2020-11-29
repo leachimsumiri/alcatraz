@@ -125,14 +125,12 @@ public class ClientRun {
         try {
             String name = nameTextField.getText();
             gamePlayer.setName(name);
-            int id = client.getPrimary().register(gamePlayer);
-            gamePlayer.setId(id);
-            client.setGamePlayer(gamePlayer);
-            LOG.info("Player registered: " + gamePlayer);
+            client.getPrimary().register(gamePlayer);
             thread = new UpdatePlayerThread(client, frame, playerListTextArea);
             thread.start();
             playerStatus = PlayerStatus.REGISTERED;
             updateVisibility();
+            LOG.info("Player registered: " + gamePlayer);
         } catch (IOException | SpreadException | GamePlayerException | NotBoundException e) {
             LOG.error("Something went wrong", e);
             JOptionPane.showMessageDialog(frame, e.getMessage());

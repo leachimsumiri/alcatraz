@@ -145,7 +145,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     @Override
-    public int register(GamePlayer gamePlayer) throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
+    public void register(GamePlayer gamePlayer) throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
         checkForNullAndEmptyName(gamePlayer);
         String errorMessage;
 
@@ -164,36 +164,10 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
             LOG.error(errorMessage);
             throw new GamePlayerException(errorMessage);
         }
-        int freeId = getFreeId(gamePlayer);
-        announceToGroup((Serializable) gamePlayerList);
-        updateClientsPlayersList();
-        LOG.info(String.format("Player %d registered!!", freeId));
-        return freeId;
-    }
-
-    /**
-     * Just like the ports in the Nintendo 64, if a port is free, this user will get it
-     * @param gamePlayer an instance of {@link GamePlayer}
-     * @return an id between 0 and 3
-     */
-    private int getFreeId(GamePlayer gamePlayer) {
-        int freeId = -1;
-        gamePlayer.setId(freeId);// to make sure, that the user will not pass a player with an id already
+        gamePlayer.setId(gamePlayerList.size());
         gamePlayerList.add(gamePlayer);
-        for (int i = 0; i < gamePlayerList.size(); i++) {
-            int finalI = i;// This is from intellij, i wanted this filter(gp -> gp.getId() == i)
-            final Optional<GamePlayer> gamePlayerOptional = gamePlayerList
-                    .stream()
-                    .filter(gp -> gp.getId() == finalI)
-                    .findAny();
-            if (gamePlayerOptional.isEmpty()) {
-                freeId = i;
-                break;
-            }
-        }
-        gamePlayer.setId(freeId);
-        gamePlayerList.set(freeId, gamePlayer);
-        return freeId;
+        updateClientsPlayersList();
+        LOG.info(String.format("Player %s registered!!", gamePlayer));
     }
 
     private void checkForNullAndEmptyName(GamePlayer gamePlayer) throws GamePlayerException {
