@@ -5,7 +5,6 @@ import at.falb.games.alcatraz.api.GamePlayer;
 import at.falb.games.alcatraz.api.ServerInterface;
 import at.falb.games.alcatraz.api.exceptions.BeginGameException;
 import at.falb.games.alcatraz.api.exceptions.GamePlayerException;
-import at.falb.games.alcatraz.api.group.communication.SpreadMessageListener;
 import at.falb.games.alcatraz.api.utilities.GameStatus;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
@@ -25,8 +24,10 @@ import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class Server extends UnicastRemoteObject implements ServerInterface {
@@ -72,7 +73,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         return actualServersList;
     }
 
-    public static void updateActualServersList(ServerCfg serverCfg) {
+    public static void updateActualServersList(ServerCfg serverCfg) throws SpreadException {
         // Added this because the indexof, wasn't finding the server
         final Optional<ServerCfg> optionalServerCfg = actualServersList
                 .stream()
@@ -84,8 +85,14 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         final int i = actualServersList.indexOf(optionalServerCfg.get());
 
         actualServersList.set(i, serverCfg);
-        thisServer.getActiveServers();
-        thisServer.getMainRegistryServer();
+
+        //It takes some time(nanoseconds) till all servers in the group know about each other
+        if (thisServer.getListOfServersWithStartTimestamp().size() == actualServersList.size()) {
+
+            // One of the servers, will ask the main registry server to update all the servers in the group
+            final ServerCfg mainRegistryServer = thisServer.getMainRegistryServer();
+            announceToGroup(new UpdateGroup(mainRegistryServer));
+        }
     }
 
     public static Server build(ServerCfg serverCfg) throws RemoteException, UnknownHostException, SpreadException, MalformedURLException {
@@ -217,13 +224,16 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         }
 
         gamePlayerList.remove(gamePlayer);
+        AtomicInteger repairId = new AtomicInteger();
+        gamePlayerList.forEach(p -> p.setId(repairId.getAndIncrement()));
+
         announceToGroup((Serializable) gamePlayerList);
         updateClientsPlayersList();
         LOG.info(String.format("Player %d removed!!", gamePlayer.getId()));
     }
 
     @Override
-    public List<ServerCfg> getActiveServers() {
+    public List<ServerCfg> getListOfServersWithStartTimestamp() {
         final List<ServerCfg> activeServers = actualServersList
                 .stream()
                 .filter(s -> s.getStartTimestamp() != null)
@@ -234,9 +244,13 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
     @Override
     public ServerCfg getMainRegistryServer() {
-        final ServerCfg mainRegistryServer = ServerClientUtility.getMainRegistryServer(getActiveServers());
-        LOG.info("Main register server: " + mainRegistryServer);
-        return mainRegistryServer;
+        final Optional<ServerCfg> optionalServerCfg = actualServersList
+                .stream()
+                .filter(s -> s.getStartTimestamp() != null)
+                .min(Comparator.comparing(ServerCfg::getStartTimestamp));
+        assert optionalServerCfg.isPresent();
+        LOG.info("Main register server: " + optionalServerCfg.get());
+        return optionalServerCfg.get();
     }
 
     @Override
@@ -247,6 +261,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
         for (GamePlayer gamePlayer : gamePlayerList) {
             final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer);
+            clientInterface.setId(gamePlayer.getId());
             clientInterface.startGame(gamePlayerList);
         }
         gameStatus = GameStatus.STARTED;
@@ -257,6 +272,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         for (GamePlayer gamePlayer : gamePlayerList) {
             final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer);
             clientInterface.setGamePlayersList(gamePlayerList);
+            clientInterface.setId(gamePlayer.getId());
         }
     }
 
@@ -276,5 +292,20 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
     public static Server getThisServer() {
         return thisServer;
+    }
+
+    /**
+     * This method will be called every time a server joins/leaves the group.
+     * If this server is the main registry server, it will update the content of all the servers in the group
+     * @param updateGroup the message to announce the main registry server, to update all the servers in the group
+     * @throws SpreadException see {@link SpreadException}
+     */
+    public static void updateTheGroup(UpdateGroup updateGroup) throws SpreadException {
+        if (updateGroup.getTheMainServer().equals(thisServer.serverCfg)) {
+            LOG.info(String.format("The main server: %s will update the content from all the other servers",
+                    thisServer.serverCfg));
+            announceToGroup((Serializable) thisServer.gamePlayerList);
+            announceToGroup(thisServer.gameStatus);
+        }
     }
 }

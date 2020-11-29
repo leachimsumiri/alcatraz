@@ -18,33 +18,22 @@ public class JsonHandler {
     private JsonHandler() {
     }
 
-    public static ServerCfg readServerJson(String serverName) throws IOException {
+    public static List<ServerCfg> readServerJson() throws IOException {
         final TypeReference<List<ServerCfg>> mapTypeReference = new TypeReference<>() {
         };
         final List<ServerCfg> serverCfgList = jsonToObject("server.json", mapTypeReference);
+        ServerClientUtility.getServerCfgList().addAll(serverCfgList);
+        return serverCfgList;
+    }
+
+    public static ServerCfg readServerJson(String serverName) throws IOException {
+        final List<ServerCfg> serverCfgList = readServerJson();
         final Optional<ServerCfg> optionalServer = serverCfgList
                 .stream()
                 .filter(s -> s.getName().equals(serverName))
                 .findAny();
         assert optionalServer.isPresent() : "This " + serverName + " is not known";
-
-        ServerClientUtility.getServerCfgList().addAll(serverCfgList);
         return optionalServer.get();
-    }
-
-    public static ClientCfg readClientJson(String clientName) throws IOException {
-        final TypeReference<List<ClientCfg>> mapTypeReference = new TypeReference<>() {
-        };
-        final List<ClientCfg> clientCfgList = jsonToObject("client.json", mapTypeReference);
-        final Optional<ClientCfg> optionalClient = clientCfgList
-                .stream()
-                .filter(c -> c.getName().equals(clientName))
-                .findAny();
-        assert optionalClient.isPresent() : "This " + clientName + " is not known";
-
-        ServerClientUtility.getClientCfgList().addAll(clientCfgList);
-        final ClientCfg clientCfg = optionalClient.get();
-        return clientCfg;
     }
 
     private static <T> T jsonToObject(String fileName, TypeReference<T> mapTypeReference) throws IOException {

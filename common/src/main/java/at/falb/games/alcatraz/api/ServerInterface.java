@@ -27,8 +27,18 @@ public interface ServerInterface extends Remote {
 
     void deregister(GamePlayer player) throws SpreadException, RemoteException, GamePlayerException, NotBoundException, MalformedURLException;
 
-    List<ServerCfg> getActiveServers() throws RemoteException;
+    /**
+     * All the register servers with {@link ServerCfg#getStartTimestamp()} != null
+     * @return a list of {@link ServerCfg}
+     * @throws RemoteException see {@link RemoteException}
+     */
+    List<ServerCfg> getListOfServersWithStartTimestamp() throws RemoteException;
 
+    /**
+     * The main register server ist the oldest server in the list {@link ServerInterface#getListOfServersWithStartTimestamp()}
+     * @return the main register server
+     * @throws RemoteException see {@link RemoteException}
+     */
     ServerCfg getMainRegistryServer() throws RemoteException;
 
     /**
