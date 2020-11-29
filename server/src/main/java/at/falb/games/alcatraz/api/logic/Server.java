@@ -261,6 +261,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
         for (GamePlayer gamePlayer : gamePlayerList) {
             final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer);
+            clientInterface.setId(gamePlayer.getId());
             clientInterface.startGame(gamePlayerList);
         }
         gameStatus = GameStatus.STARTED;
@@ -271,6 +272,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         for (GamePlayer gamePlayer : gamePlayerList) {
             final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer);
             clientInterface.setGamePlayersList(gamePlayerList);
+            clientInterface.setId(gamePlayer.getId());
         }
     }
 
