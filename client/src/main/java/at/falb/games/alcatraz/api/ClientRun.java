@@ -83,6 +83,8 @@ public class ClientRun {
         frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(false);
 
+        client.setFrame(frame);
+
         submitButton.addActionListener(a -> submitAction());
         startGameButton.addActionListener(a -> startGameAction());
         deregisterButton.addActionListener(a -> deregisterAction());
@@ -107,6 +109,8 @@ public class ClientRun {
     private static void startGameAction() {
         try {
             client.getPrimary().beginGame();
+            playerStatus = PlayerStatus.GAME_STARTED;
+            thread.interrupt();
             updateVisibility();
         } catch (BeginGameException e) {
             LOG.error(e.getMessage());
@@ -141,6 +145,5 @@ public class ClientRun {
         startGameButton.setEnabled(playerStatus == PlayerStatus.REGISTERED);
         deregisterButton.setEnabled(playerStatus == PlayerStatus.REGISTERED);
         playerListTextArea.setVisible(playerStatus == PlayerStatus.REGISTERED);
-        frame.setVisible(playerStatus != PlayerStatus.GAME_STARTED);
     }
 }

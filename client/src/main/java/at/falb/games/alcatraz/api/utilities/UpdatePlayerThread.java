@@ -45,7 +45,7 @@ public class UpdatePlayerThread extends Thread {
                     frame.setVisible(true);
                     lastGamePlayersList = currentGamePlayersList;
                 }
-                TimeUnit.MILLISECONDS.sleep(5000);
+                TimeUnit.SECONDS.sleep(1);
             } catch (RemoteException e) {
                 LOG.error("Primary not available", e);
             } catch (InterruptedException e) {

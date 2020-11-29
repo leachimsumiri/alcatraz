@@ -2,12 +2,15 @@ package at.falb.games.alcatraz.api;
 
 import at.falb.games.alcatraz.api.utilities.GameMove;
 
+import javax.swing.*;
 import java.rmi.Remote;
 import java.rmi.RemoteException;
 import java.util.List;
 
 public interface ClientInterface extends Remote {
     ServerInterface getPrimary() throws RemoteException;
+
+    void setFrame(JFrame frame) throws RemoteException;
 
     List<GamePlayer> getGamePlayersList() throws RemoteException;
 

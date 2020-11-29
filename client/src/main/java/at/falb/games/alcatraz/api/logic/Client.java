@@ -13,6 +13,7 @@ import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import javax.swing.*;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -27,6 +28,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     private final List<ServerInterface> serverList = new ArrayList<>();
     // This ServergetMainRegistryServer is used for the first time
     private ServerInterface mainRegistryServer;
+    private JFrame frame;
 
     private final Alcatraz game = new Alcatraz();
     private MoveListener listener;
@@ -45,6 +47,11 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
             }
         }
         return null;
+    }
+
+    @Override
+    public void setFrame(JFrame frame) {
+        this.frame = frame;
     }
 
     @Override
@@ -71,6 +78,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     @Override
     public void move(Player player, GameMove gameMove) throws RemoteException {
         try {
+            LOG.info("Received move from player: " + player);
             this.game.doMove(player, gameMove.getPrisoner(), gameMove.getRowOrCol(), gameMove.getRow(),
                     gameMove.getColumn());
         } catch (IllegalMoveException e) {
@@ -97,6 +105,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
         this.game.showWindow();
         this.game.start();
+        LOG.info("Started game with player: " + gamePlayersList);
+        this.frame.setVisible(false);
     }
 
     @Override
