@@ -17,8 +17,6 @@ import java.util.Scanner;
 public class InputHelper {
 
     private final Logger Log = LogManager.getLogger(InputHelper.class);
-    private final Scanner scanner = new Scanner(System.in);
-    private final PrintStream Out = System.out;
 
     public static final int PORT_FROM = 5000;
     public static final int PORT_TO   = 5100;
@@ -45,22 +43,6 @@ public class InputHelper {
         return playa;
     }
 
-    public String requestPlayerName() {
-        final String name = requestName();
-        return URLEncoder.encode(name, StandardCharsets.UTF_8);
-    }
-
-
-    @SuppressWarnings("SameParameterValue")
-    private String getInput(final String requestInfos) {
-        Out.print(requestInfos + ": ");
-        return scanner.nextLine();
-    }
-
-    private void sendOutput(final String message) {
-        Out.println(message);
-    }
-
     /**
      * Public in order to use for testing
      * @return {@link InetAddress#getLocalHost()#getHostAddress()}
@@ -85,50 +67,5 @@ public class InputHelper {
             }
         } while (initialPort < PORT_TO);
         return initialPort;
-    }
-
-
-
-    public void printLobbyWelcome() {
-        sendOutput("");
-        sendOutput("//////////////////////////////////////////////////");
-        sendOutput("Welcome to the lobby - Let's wait for more players");
-    }
-
-    public void printPlayerList(List<GamePlayer> gamePlayerList) {
-        sendOutput("The current registered players are:");
-        for (GamePlayer gamePlayer:gamePlayerList) {
-            sendOutput(gamePlayer.getName());
-        }
-        sendOutput("--------------------------------------------------");
-    }
-
-    public String printLobby() {
-        sendOutput("Enter d to deregister or s to start the game");
-        return getInput("Key");
-    }
-
-    public void printError(String msg) {
-        sendOutput("!!!!!!!!!!!!! " + msg + " !!!!!!!!!!!!!");
-    }
-
-
-    /***
-     * Warm welcoming message for our friend the player
-     */
-    public void welcome() {
-        sendOutput("/////////////////////////////////");
-        sendOutput(" Welcome to Aaaaaaaahhhhhlcatraz ");
-        sendOutput("/////////////////////////////////");
-        sendOutput("");
-    }
-
-    /**
-     * Request a player name
-     * @return Name the player chose for him/her/itself
-     */
-    public String requestName() {
-        sendOutput("What would you like to be called?");
-        return getInput("Name");
     }
 }
