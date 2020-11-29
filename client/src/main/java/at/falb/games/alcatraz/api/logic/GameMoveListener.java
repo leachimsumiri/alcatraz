@@ -1,20 +1,24 @@
 package at.falb.games.alcatraz.api.logic;
 
-import at.falb.games.alcatraz.api.*;
+import at.falb.games.alcatraz.api.Alcatraz;
+import at.falb.games.alcatraz.api.ClientInterface;
+import at.falb.games.alcatraz.api.ClientRun;
+import at.falb.games.alcatraz.api.GamePlayer;
+import at.falb.games.alcatraz.api.MoveListener;
+import at.falb.games.alcatraz.api.Player;
+import at.falb.games.alcatraz.api.Prisoner;
 import at.falb.games.alcatraz.api.utilities.GameMove;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
-import java.net.MalformedURLException;
-import java.rmi.NotBoundException;
+import javax.swing.*;
 import java.rmi.RemoteException;
 import java.util.List;
 
 public class GameMoveListener implements MoveListener {
     private static final Logger LOG = LogManager.getLogger(GameMoveListener.class);
     private final List<GamePlayer> other_players;
-    private final int MAX_RETRIES = 12;
 
     public GameMoveListener(List<GamePlayer> other_players) {
         this.other_players = other_players;
@@ -26,28 +30,12 @@ public class GameMoveListener implements MoveListener {
         for (GamePlayer current_player : other_players) {
             try {
                 if (player.getId() != current_player.getId()) {
-                    ClientInterface client = null;
-                    int retries = 0;
-
-                    while(retries < MAX_RETRIES) {
-                      try {
-                          client = ServerClientUtility.lookup(current_player);
-                          break;
-                      } catch(RemoteException | NotBoundException | MalformedURLException exception) {
-                          LOG.error("Client Interface from player: " + current_player.getName() + " not available");
-                          retries++;
-                          Thread.sleep(10000);
-                      }
-                    }
-
-                    if(client != null) {
-                        client.move(player, new GameMove(col, row, rowOrCol, prisoner));
-                        LOG.info("Send move to player: " + current_player);
-                    } else {
-                        LOG.error("Retry mechanism failed....");
-                    }
+                    ClientInterface client = ServerClientUtility.lookup(current_player);
+                    client.move(player, new GameMove(col, row, rowOrCol, prisoner));
+                    LOG.info("Send move to player: " + current_player);
                 }
-            } catch (Exception e) {
+            } catch (RemoteException e) {
+                JOptionPane.showMessageDialog(ClientRun.frame, e.getMessage());
                 LOG.error("Something went wrong when sending move to player: " + current_player, e);
             }
         }

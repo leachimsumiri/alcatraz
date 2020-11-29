@@ -29,7 +29,7 @@ public class ClientRun {
     private static JButton submitButton;
     private static JButton startGameButton;
     private static JButton deregisterButton;
-    private static JFrame frame;
+    public static JFrame frame;
     private static ClientInterface client;
     private static UpdatePlayerThread thread;
     private static JTextArea playerListTextArea;
