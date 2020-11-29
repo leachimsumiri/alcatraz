@@ -5,33 +5,29 @@ import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
 import java.io.IOException;
-import java.io.PrintStream;
 import java.net.InetAddress;
 import java.net.Socket;
-import java.net.URLEncoder;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Scanner;
 
-public class InputHelper {
+public class SocketHelper {
 
-    private final Logger Log = LogManager.getLogger(InputHelper.class);
+    private final Logger Log = LogManager.getLogger(SocketHelper.class);
 
     public static final int PORT_FROM = 5000;
-    public static final int PORT_TO   = 5100;
+    public static final int PORT_TO = 5100;
 
+    private SocketHelper() {
+    }
 
-    private InputHelper() {}
-    private static InputHelper instance;
+    private static SocketHelper instance;
 
-    public static InputHelper getInstance() {
-        if (instance==null)
-            instance = new InputHelper();
+    public static SocketHelper getInstance() {
+        if (instance == null)
+            instance = new SocketHelper();
         return instance;
     }
 
-    public GamePlayer requestPlayerSocket()  throws IOException {
+    public GamePlayer requestPlayerSocket() throws IOException {
         final GamePlayer playa = new GamePlayer();
 
         final String ip = getIpAddress();

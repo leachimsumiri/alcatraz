@@ -3,7 +3,7 @@ package at.falb.games.alcatraz.api;
 import at.falb.games.alcatraz.api.exceptions.BeginGameException;
 import at.falb.games.alcatraz.api.exceptions.GamePlayerException;
 import at.falb.games.alcatraz.api.logic.Client;
-import at.falb.games.alcatraz.api.logic.InputHelper;
+import at.falb.games.alcatraz.api.logic.SocketHelper;
 import at.falb.games.alcatraz.api.utilities.JsonHandler;
 import at.falb.games.alcatraz.api.utilities.PlayerStatus;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
@@ -38,7 +38,7 @@ public class ClientRun {
         client = new Client();
         try {
             JsonHandler.readServerJson();
-            gamePlayer = InputHelper.getInstance().requestPlayerSocket();
+            gamePlayer = SocketHelper.getInstance().requestPlayerSocket();
             client.setGamePlayer(gamePlayer);
             ServerClientUtility.createRegistry(client);
             LOG.info("Client started: " + gamePlayer);
