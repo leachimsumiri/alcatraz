@@ -19,13 +19,12 @@ public interface ServerInterface extends Remote {
     /**
      * Register the {@link GamePlayer} and if successful, it will return the new id for the player.
      * @param player an instance of type {@link GamePlayer}
-     * @return the new GamePlayer id
      * @throws SpreadException when its not possible to announce to the other servers, that a new GamePlayer wants to register
      * @throws GamePlayerException when the GamePlayer cannot register, because the maximum number of player was reached or the name already exists
      */
-    int register(GamePlayer player) throws SpreadException, RemoteException, GamePlayerException;
+    void register(GamePlayer player) throws SpreadException, RemoteException, GamePlayerException, NotBoundException, MalformedURLException;
 
-    void deregister(GamePlayer player) throws SpreadException, RemoteException, GamePlayerException;
+    void deregister(GamePlayer player) throws SpreadException, RemoteException, GamePlayerException, NotBoundException, MalformedURLException;
 
     /**
      * All the register servers with {@link ServerCfg#getStartTimestamp()} != null

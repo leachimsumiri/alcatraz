@@ -1,11 +1,19 @@
 package at.falb.games.alcatraz.api.logic;
 
-import at.falb.games.alcatraz.api.*;
+import at.falb.games.alcatraz.api.Alcatraz;
+import at.falb.games.alcatraz.api.ClientInterface;
+import at.falb.games.alcatraz.api.ClientRun;
+import at.falb.games.alcatraz.api.GamePlayer;
+import at.falb.games.alcatraz.api.MoveListener;
+import at.falb.games.alcatraz.api.Player;
+import at.falb.games.alcatraz.api.Prisoner;
 import at.falb.games.alcatraz.api.utilities.GameMove;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import javax.swing.*;
+import java.rmi.RemoteException;
 import java.util.List;
 
 public class GameMoveListener implements MoveListener {
@@ -26,7 +34,8 @@ public class GameMoveListener implements MoveListener {
                     client.move(player, new GameMove(col, row, rowOrCol, prisoner));
                     LOG.info("Send move to player: " + current_player);
                 }
-            } catch (Exception e) {
+            } catch (RemoteException e) {
+                JOptionPane.showMessageDialog(ClientRun.frame, e.getMessage());
                 LOG.error("Something went wrong when sending move to player: " + current_player, e);
             }
         }

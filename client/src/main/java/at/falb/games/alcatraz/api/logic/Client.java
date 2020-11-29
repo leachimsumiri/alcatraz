@@ -1,22 +1,23 @@
 package at.falb.games.alcatraz.api.logic;
 
-import at.falb.games.alcatraz.api.*;
-import at.falb.games.alcatraz.api.utilities.GameMove;
 import at.falb.games.alcatraz.api.Alcatraz;
 import at.falb.games.alcatraz.api.ClientInterface;
 import at.falb.games.alcatraz.api.GamePlayer;
+import at.falb.games.alcatraz.api.IllegalMoveException;
 import at.falb.games.alcatraz.api.MoveListener;
+import at.falb.games.alcatraz.api.Player;
 import at.falb.games.alcatraz.api.ServerInterface;
+import at.falb.games.alcatraz.api.utilities.GameMove;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 
+import javax.swing.*;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Objects;
 
 public class Client extends UnicastRemoteObject implements ClientInterface {
     private static final Logger LOG = LogManager.getLogger(Client.class);
@@ -27,14 +28,16 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     private final List<ServerInterface> serverList = new ArrayList<>();
     // This ServergetMainRegistryServer is used for the first time
     private ServerInterface mainRegistryServer;
+    private JFrame frame;
 
-    private Alcatraz game = new Alcatraz();
+    private final Alcatraz game = new Alcatraz();
     private MoveListener listener;
 
     public Client() throws RemoteException {
     }
 
-    private ServerInterface getPrimary(){
+    @Override
+    public ServerInterface getPrimary(){
         for (ServerCfg serverCfg: ALL_POSSIBLE_SERVERS){
             try {
                 ServerCfg primaryServer = ServerClientUtility.lookup(serverCfg).getMainRegistryServer();
@@ -46,22 +49,13 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         return null;
     }
 
-    // https://stackoverflow.com/questions/2258066/java-run-a-function-after-a-specific-number-of-seconds
     @Override
-    public List<GamePlayer> getGamePlayersList() throws RemoteException {
-        new java.util.Timer().schedule(
-                new java.util.TimerTask() {
-                    @Override
-                    public void run() {
-                        try {
-                            gamePlayersList = Objects.requireNonNull(getPrimary()).getGamePlayersList();
-                        } catch (RemoteException e) {
-                            LOG.error("Cannot get current Players", e);
-                        }
-                    }
-                },
-                5000
-        );
+    public void setFrame(JFrame frame) {
+        this.frame = frame;
+    }
+
+    @Override
+    public List<GamePlayer> getGamePlayersList() {
         return gamePlayersList;
     }
 
@@ -84,6 +78,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     @Override
     public void move(Player player, GameMove gameMove) throws RemoteException {
         try {
+            LOG.info("Received move from player: " + player);
             this.game.doMove(player, gameMove.getPrisoner(), gameMove.getRowOrCol(), gameMove.getRow(),
                     gameMove.getColumn());
         } catch (IllegalMoveException e) {
@@ -110,5 +105,12 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
         this.game.showWindow();
         this.game.start();
+        LOG.info("Started game with player: " + gamePlayersList);
+        this.frame.setVisible(false);
+    }
+
+    @Override
+    public void setId(int id) throws RemoteException {
+        gamePlayer.setId(id);
     }
 }

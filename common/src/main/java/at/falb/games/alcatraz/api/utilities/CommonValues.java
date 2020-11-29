@@ -1,8 +1,9 @@
 package at.falb.games.alcatraz.api.utilities;
 
+import java.net.URL;
+
 public class CommonValues {
-    public static final int DEREGISTRATION_OK  =  5;
-    public static final int SERVER_NOT_PRIMARY = -1;
-    public static final int PLAYER_MAX_REACHED = -2;
-    public static final int NAME_TAKEN         = -3;
+    public static final String javaSecurityPolicyKey = "java.security.policy";
+    public static final String javaRmiServerHostname = "java.rmi.server.hostname";
+    public static final URL RESOURCE = CommonValues.class.getClassLoader().getResource("rmi.policy");
 }

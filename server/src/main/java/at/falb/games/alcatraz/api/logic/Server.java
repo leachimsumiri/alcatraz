@@ -27,6 +27,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.atomic.AtomicInteger;
 import java.util.stream.Collectors;
 
 public class Server extends UnicastRemoteObject implements ServerInterface {
@@ -144,7 +145,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     @Override
-    public int register(GamePlayer gamePlayer) throws SpreadException, GamePlayerException {
+    public void register(GamePlayer gamePlayer) throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
         checkForNullAndEmptyName(gamePlayer);
         String errorMessage;
 
@@ -163,35 +164,10 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
             LOG.error(errorMessage);
             throw new GamePlayerException(errorMessage);
         }
-        int freePort = getFreePort(gamePlayer);
-        announceToGroup((Serializable) gamePlayerList);
-        LOG.info(String.format("Player %d registered!!", freePort));
-        return freePort;
-    }
-
-    /**
-     * Just like the ports in the Nintendo 64, if a port is free, this user will get it
-     * @param gamePlayer an instance of {@link GamePlayer}
-     * @return an id between 0 and 3
-     */
-    private int getFreePort(GamePlayer gamePlayer) {
-        int freePort = -1;
-        gamePlayer.setId(freePort);// to make sure, that the user will not pass a player with an id already
+        gamePlayer.setId(gamePlayerList.size());
         gamePlayerList.add(gamePlayer);
-        for (int i = 0; i < gamePlayerList.size(); i++) {
-            int finalI = i;// This is from intellij, i wanted this filter(gp -> gp.getId() == i)
-            final Optional<GamePlayer> gamePlayerOptional = gamePlayerList
-                    .stream()
-                    .filter(gp -> gp.getId() == finalI)
-                    .findAny();
-            if (gamePlayerOptional.isEmpty()) {
-                freePort = i;
-                break;
-            }
-        }
-        gamePlayer.setId(freePort);
-        gamePlayerList.set(freePort, gamePlayer);
-        return freePort;
+        updateClientsPlayersList();
+        LOG.info(String.format("Player %s registered!!", gamePlayer));
     }
 
     private void checkForNullAndEmptyName(GamePlayer gamePlayer) throws GamePlayerException {
@@ -210,7 +186,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     @Override
-    public void deregister(GamePlayer gamePlayer) throws SpreadException, GamePlayerException {
+    public void deregister(GamePlayer gamePlayer) throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
         checkForNullAndEmptyName(gamePlayer);
         final Optional<GamePlayer> optionalGamePlayer = gamePlayerList.stream()
                 .filter(gp -> gp.getName().equals(gamePlayer.getName()))
@@ -222,7 +198,11 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         }
 
         gamePlayerList.remove(gamePlayer);
+        AtomicInteger repairId = new AtomicInteger();
+        gamePlayerList.forEach(p -> p.setId(repairId.getAndIncrement()));
+
         announceToGroup((Serializable) gamePlayerList);
+        updateClientsPlayersList();
         LOG.info(String.format("Player %d removed!!", gamePlayer.getId()));
     }
 
@@ -255,10 +235,19 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
         for (GamePlayer gamePlayer : gamePlayerList) {
             final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer);
+            clientInterface.setId(gamePlayer.getId());
             clientInterface.startGame(gamePlayerList);
         }
         gameStatus = GameStatus.STARTED;
         announceToGroup(gameStatus);
+    }
+
+    private void updateClientsPlayersList() throws RemoteException, MalformedURLException, NotBoundException {
+        for (GamePlayer gamePlayer : gamePlayerList) {
+            final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer);
+            clientInterface.setGamePlayersList(gamePlayerList);
+            clientInterface.setId(gamePlayer.getId());
+        }
     }
 
     public static void setGameStatus(GameStatus gameStatus) {
