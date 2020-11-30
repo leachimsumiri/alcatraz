@@ -37,16 +37,14 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     private GameStatus gameStatus = GameStatus.NOT_STARTED;
     private final SpreadConnection connection;
 
-    private static Server thisServer;
+    private static Server instance = null;
     private final ServerCfg serverCfg;
-    private final SpreadMessageListener spreadMessageListener;
-    private static final List<ServerCfg> actualServersList = new ArrayList<>();
+    private final List<ServerCfg> actualServersList = new ArrayList<>();
 
     private Server(SpreadConnection connection, ServerCfg serverCfg) throws RemoteException {
         this.serverCfg = serverCfg;
         this.connection = connection;
-        this.spreadMessageListener = new SpreadMessageListener();
-        connection.add(this.spreadMessageListener);
+        connection.add(new SpreadMessageListener());
     }
 
     /**
@@ -60,60 +58,54 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
      * @param <M>
      * @throws SpreadException
      */
-    public static <M extends Serializable> void announceToGroup(M messageObject) throws SpreadException {
+    public <M extends Serializable> void announceToGroup(M messageObject) throws SpreadException {
         SpreadMessage message = new SpreadMessage();
         message.setObject(messageObject);
         message.addGroup(ServerValues.REPLICAS_GROUP_NAME);
         message.setReliable();
         message.setSelfDiscard(true);
-        thisServer.connection.multicast(message);
+        instance.connection.multicast(message);
     }
 
-    public static List<ServerCfg> getActualServersList() {
+    public List<ServerCfg> getActualServersList() {
         return actualServersList;
     }
 
-    public static void updateActualServersList(ServerCfg serverCfg) throws SpreadException {
+    public void updateActualServersList(ServerCfg serverCfg) throws SpreadException {
         // Added this because the indexof, wasn't finding the server
-        final Optional<ServerCfg> optionalServerCfg = actualServersList
+        final Optional<ServerCfg> optionalServerCfg = instance.actualServersList
                 .stream()
                 .filter(s -> s.equals(serverCfg))
                 .findAny();
-
         assert optionalServerCfg.isPresent() : "This should not happen, the server should exist";
 
-        final int i = actualServersList.indexOf(optionalServerCfg.get());
-
-        actualServersList.set(i, serverCfg);
+        final int i = instance.actualServersList.indexOf(optionalServerCfg.get());
+        instance.actualServersList.set(i, serverCfg);
 
         //It takes some time(nanoseconds) till all servers in the group know about each other
-        if (thisServer.getListOfServersWithStartTimestamp().size() == actualServersList.size()) {
+        if (instance.getListOfServersWithStartTimestamp().size() == instance.actualServersList.size()) {
 
             // One of the servers, will ask the main registry server to update all the servers in the group
-            final ServerCfg mainRegistryServer = thisServer.getMainRegistryServer();
+            final ServerCfg mainRegistryServer = instance.getMainRegistryServer();
             announceToGroup(new UpdateGroup(mainRegistryServer));
         }
     }
 
-    public static Server build(ServerCfg serverCfg) throws RemoteException, UnknownHostException, SpreadException, MalformedURLException {
-        if (thisServer == null) {
-            build(serverCfg, new SpreadConnection());
-            ServerClientUtility.createRegistry(thisServer);
-        }
-        return thisServer;
-    }
-
     /**
-     * It is needed for testing
-     * @param serverCfg a normal server configuration
-     * @param connection a mocked SpreadConnection
-     * @return
+     * This needs to be synchronized, because: Incorrect lazy initialization
+     * Findbug is referencing a potential threading issue. In a multi thread environment,
+     * there would be potential for your singleton to be created more than once with your current code.
+     * https://stackoverflow.com/a/6782690
+     * @param serverCfg this server configuration
+     * @return an instance of {@link Server}
      * @throws RemoteException
      * @throws UnknownHostException
      * @throws SpreadException
+     * @throws MalformedURLException
      */
-    public static Server build(ServerCfg serverCfg, SpreadConnection connection) throws RemoteException, UnknownHostException, SpreadException {
-        if (thisServer == null) {
+    public static synchronized Server build(ServerCfg serverCfg) throws RemoteException, UnknownHostException, SpreadException, MalformedURLException {
+        if (instance == null) {
+            final SpreadConnection connection = new SpreadConnection();
             connection.connect(InetAddress.getByName(serverCfg.getSpreaderIp()),
                     serverCfg.getSpreaderPort(),
                     serverCfg.getName(),
@@ -121,31 +113,24 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
                     true);
             SpreadGroup group = new SpreadGroup();
             group.join(connection, ServerValues.REPLICAS_GROUP_NAME);
-            thisServer = new Server(connection, serverCfg);
+            instance = new Server(connection, serverCfg);
+            ServerClientUtility.createRegistry(instance);
         }
-        return thisServer;
+        return instance;
     }
 
-    public static void updateGamePlayerList(List<GamePlayer> gamePlayerList) {
-        thisServer.gamePlayerList = gamePlayerList;
+    public void updateGamePlayerList(List<GamePlayer> gamePlayerList) {
+        this.gamePlayerList = gamePlayerList;
         LOG.info(gamePlayerList);
     }
 
-    /**
-     * This is used only for testing
-     * @param thisServer
-     */
-    public static void setThisServer(Server thisServer) {
-        Server.thisServer = thisServer;
-    }
-
     @Override
-    public ServerCfg getServerCfg() throws RemoteException {
+    public ServerCfg getServerCfg() {
         return serverCfg;
     }
 
     @Override
-    public void register(GamePlayer gamePlayer) throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
+    public void register(GamePlayer gamePlayer) throws GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
         checkForNullAndEmptyName(gamePlayer);
         String errorMessage;
 
@@ -186,7 +171,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     @Override
-    public void deregister(GamePlayer gamePlayer) throws SpreadException, GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
+    public void deregister(GamePlayer gamePlayer) throws SpreadException, GamePlayerException, RemoteException {
         checkForNullAndEmptyName(gamePlayer);
         final Optional<GamePlayer> optionalGamePlayer = gamePlayerList.stream()
                 .filter(gp -> gp.getName().equals(gamePlayer.getName()))
@@ -206,7 +191,6 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         LOG.info(String.format("Player %d removed!!", gamePlayer.getId()));
     }
 
-    @Override
     public List<ServerCfg> getListOfServersWithStartTimestamp() {
         final List<ServerCfg> activeServers = actualServersList
                 .stream()
@@ -228,7 +212,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     @Override
-    public void beginGame() throws BeginGameException, RemoteException, NotBoundException, SpreadException, MalformedURLException {
+    public void beginGame() throws BeginGameException, RemoteException, SpreadException {
         if (gamePlayerList.size() < 2) {
             throw new BeginGameException("Not enough players are register");
         }
@@ -242,7 +226,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         announceToGroup(gameStatus);
     }
 
-    private void updateClientsPlayersList() throws RemoteException, MalformedURLException, NotBoundException {
+    private void updateClientsPlayersList() throws RemoteException {
         for (GamePlayer gamePlayer : gamePlayerList) {
             final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer);
             clientInterface.setGamePlayersList(gamePlayerList);
@@ -250,22 +234,17 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         }
     }
 
-    public static void setGameStatus(GameStatus gameStatus) {
-        thisServer.gameStatus = gameStatus;
+    public void setGameStatus(GameStatus gameStatus) {
+        this.gameStatus = gameStatus;
     }
 
     @Override
-    public List<GamePlayer> getGamePlayersList() {
-        return gamePlayerList;
-    }
-
-    @Override
-    public GameStatus getGameStatus() throws RemoteException {
+    public GameStatus getGameStatus() {
         return gameStatus;
     }
 
-    public static Server getThisServer() {
-        return thisServer;
+    public static Server getInstance() {
+        return instance;
     }
 
     /**
@@ -274,12 +253,12 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
      * @param updateGroup the message to announce the main registry server, to update all the servers in the group
      * @throws SpreadException see {@link SpreadException}
      */
-    public static void updateTheGroup(UpdateGroup updateGroup) throws SpreadException {
-        if (updateGroup.getTheMainServer().equals(thisServer.serverCfg)) {
+    public void updateTheGroup(UpdateGroup updateGroup) throws SpreadException {
+        if (updateGroup.getTheMainServer().equals(instance.serverCfg)) {
             LOG.info(String.format("The main server: %s will update the content from all the other servers",
-                    thisServer.serverCfg));
-            announceToGroup((Serializable) thisServer.gamePlayerList);
-            announceToGroup(thisServer.gameStatus);
+                    instance.serverCfg));
+            announceToGroup((Serializable) instance.gamePlayerList);
+            announceToGroup(instance.gameStatus);
         }
     }
 }

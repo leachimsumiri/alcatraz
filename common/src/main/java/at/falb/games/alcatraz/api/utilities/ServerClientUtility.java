@@ -23,7 +23,7 @@ public final class ServerClientUtility {
     private static final List<ServerCfg> SERVER_CFG_LIST = new ArrayList<>();
 
     // How many times will the sender, try to reach the other RMI server
-    private static final int MAX_RETRIES = 12;
+    private static final int MAX_RETRIES = 4;
 
     private enum RmiType {
         // This is the client
@@ -98,7 +98,7 @@ public final class ServerClientUtility {
             } catch (RemoteException | NotBoundException e) {
                 LOG.error(String.format("Try %d: try to connect with RMI. %s ", i, completedRmiUrl), e);
                 try {
-                    Thread.sleep(10000);
+                    Thread.sleep(3000);
                 } catch (InterruptedException e1) {
                     // Ignore this annoying exception
                 }
