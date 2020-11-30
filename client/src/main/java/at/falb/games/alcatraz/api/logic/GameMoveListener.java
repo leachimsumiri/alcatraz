@@ -39,6 +39,11 @@ public class GameMoveListener implements MoveListener {
                 LOG.error("Something went wrong when sending move to player: " + current_player, e);
             }
         }
+        for (GamePlayer current : other_players) {
+            if (current.getId() == (player.getId() + 1) % other_players.size()) {
+                LOG.info("Wait for player " + current.getName() + " to play");
+            }
+        }
     }
 
     @Override
