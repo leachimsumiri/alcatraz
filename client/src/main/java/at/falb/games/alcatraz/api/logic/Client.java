@@ -121,6 +121,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     public void startGame(List<GamePlayer> gamePlayersList){
         try {
             this.game.init(gamePlayersList.size(), this.gamePlayer.getId());
+            for (int idx = 0 ; idx < gamePlayersList.size(); idx++ ){
+                this.game.getPlayer(idx).setName(gamePlayersList.get(idx).getName());
+            }
         } catch (Exception e) {
             LOG.error("Something went wrong when initializing game", e);
         }
