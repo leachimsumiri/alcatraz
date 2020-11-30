@@ -157,7 +157,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         gamePlayer.setId(gamePlayerList.size());
         gamePlayerList.add(gamePlayer);
         announceToGroup((Serializable) gamePlayerList);
-        updateClientsPlayersList();
+        updateClientsPlayersList(gamePlayerList);
         LOG.info(String.format("Player %s registered!!", gamePlayer));
     }
 
@@ -188,12 +188,13 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
             throw new GamePlayerException(errorMessage);
         }
 
+        List<GamePlayer> gamePlayerListOld = new ArrayList<>(gamePlayerList);
         gamePlayerList.remove(gamePlayer);
         AtomicInteger repairId = new AtomicInteger();
         gamePlayerList.forEach(p -> p.setId(repairId.getAndIncrement()));
 
         announceToGroup((Serializable) gamePlayerList);
-        updateClientsPlayersList();
+        updateClientsPlayersList(gamePlayerListOld);
         LOG.info(String.format("Player %d removed!!", gamePlayer.getId()));
     }
 
@@ -232,8 +233,8 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         announceToGroup(gameStatus);
     }
 
-    private void updateClientsPlayersList() throws RemoteException {
-        for (GamePlayer gamePlayer : gamePlayerList) {
+    private void updateClientsPlayersList(List<GamePlayer> gamePlayerListOld) throws RemoteException {
+        for (GamePlayer gamePlayer : gamePlayerListOld) {
             final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer);
             clientInterface.setGamePlayersList(gamePlayerList);
             clientInterface.setId(gamePlayer.getId());

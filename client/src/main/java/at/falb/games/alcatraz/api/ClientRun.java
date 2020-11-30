@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
+import java.util.List;
 
 
 public class ClientRun {
@@ -100,7 +101,19 @@ public class ClientRun {
         frame.addWindowListener(new WindowAdapter(){
             public void windowClosing(WindowEvent e){
                 int i = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit?");
-                if (i == 0) {
+                boolean playerRegistered = false;
+                try {
+                    List<GamePlayer> gamePlayersList = client.getGamePlayersList();
+                    for (GamePlayer current :
+                            gamePlayersList) {
+                        if (gamePlayer.getName() != null && current.getName().equals(gamePlayer.getName())) {
+                            playerRegistered = true;
+                        }
+                    }
+                } catch (RemoteException ex) {
+                    LOG.error("Something went wrong", ex);
+                }
+                if (i == 0 && gamePlayer.getName() != null && playerRegistered) {
                     deregisterAction();
                     System.exit(0);
                 }
