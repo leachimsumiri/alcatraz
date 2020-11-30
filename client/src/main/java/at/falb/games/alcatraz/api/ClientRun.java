@@ -15,6 +15,8 @@ import spread.SpreadException;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.WindowAdapter;
+import java.awt.event.WindowEvent;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
@@ -95,7 +97,15 @@ public class ClientRun {
         submitButton.addActionListener(a -> submitAction());
         startGameButton.addActionListener(a -> startGameAction());
         deregisterButton.addActionListener(a -> deregisterAction());
-
+        frame.addWindowListener(new WindowAdapter(){
+            public void windowClosing(WindowEvent e){
+                int i = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit?");
+                if (i == 0) {
+                    deregisterAction();
+                    System.exit(0);
+                }
+            }
+        });
         updateVisibility();
     }
 
