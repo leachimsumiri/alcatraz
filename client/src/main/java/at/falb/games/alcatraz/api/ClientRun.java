@@ -37,12 +37,12 @@ public class ClientRun {
 
     public static void main(String[] args) throws RemoteException {
         assert CommonValues.RESOURCE != null && CommonValues.RESOURCE.getPath() != null;
-        System.setProperty(CommonValues.javaSecurityPolicyKey, CommonValues.RESOURCE.toString());
+        System.setProperty(CommonValues.JAVA_SECURITY_POLICY_KEY, CommonValues.RESOURCE.toString());
         client = new Client();
         try {
             JsonHandler.readServerJson();
             gamePlayer = SocketHelper.getInstance().requestPlayerSocket();
-            System.setProperty(CommonValues.javaRmiServerHostname, gamePlayer.getIp());
+            System.setProperty(CommonValues.JAVA_RMI_SERVER_HOSTNAME, gamePlayer.getIp());
             client.setGamePlayer(gamePlayer);
             if (System.getSecurityManager() == null) {
                 System.setSecurityManager(new SecurityManager());

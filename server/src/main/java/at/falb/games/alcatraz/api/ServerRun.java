@@ -16,8 +16,8 @@ public class ServerRun {
         ServerCfg serverCfg = JsonHandler.readServerJson(arg[0]);
         assert CommonValues.RESOURCE != null && CommonValues.RESOURCE.getPath() != null;
 
-        System.setProperty(CommonValues.javaSecurityPolicyKey, CommonValues.RESOURCE.toString());
-        System.setProperty(CommonValues.javaRmiServerHostname, serverCfg.getServerIp());
+        System.setProperty(CommonValues.JAVA_SECURITY_POLICY_KEY, CommonValues.RESOURCE.toString());
+        System.setProperty(CommonValues.JAVA_RMI_SERVER_HOSTNAME, serverCfg.getServerIp());
         if (System.getSecurityManager() == null) {
             System.setSecurityManager(new SecurityManager());
         }
