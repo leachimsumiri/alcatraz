@@ -103,7 +103,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
      * @throws SpreadException
      * @throws MalformedURLException
      */
-    public static synchronized Server build(ServerCfg serverCfg) throws RemoteException, UnknownHostException, SpreadException, MalformedURLException {
+    public static Server build(ServerCfg serverCfg) throws RemoteException, UnknownHostException, SpreadException, MalformedURLException {
         if (instance == null) {
             final SpreadConnection connection = new SpreadConnection();
             connection.connect(InetAddress.getByName(serverCfg.getSpreaderIp()),
