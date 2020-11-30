@@ -27,7 +27,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     //This is the list of servers, that will be updated every x seconds.
     private final List<ServerInterface> serverList = new ArrayList<>();
     // This ServergetMainRegistryServer is used for the first time
-    private ServerInterface mainRegistryServer;
+    private ServerCfg mainRegistryServer;
     private JFrame frame;
 
     private final Alcatraz game = new Alcatraz();
@@ -37,16 +37,32 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     }
 
     @Override
-    public ServerInterface getPrimary(){
-        for (ServerCfg serverCfg: ALL_POSSIBLE_SERVERS){
+    public ServerInterface getPrimary() throws RemoteException {
+        if (mainRegistryServer == null) {
+            for (ServerCfg serverCfg : ALL_POSSIBLE_SERVERS) {
+                try {
+                    return getServerInterface();
+                } catch (Exception e) {
+                    LOG.error("Server not available: " + serverCfg, e);
+                }
+            }
+        } else {
             try {
-                ServerCfg primaryServer = ServerClientUtility.lookup(serverCfg).getMainRegistryServer();
-                return ServerClientUtility.lookup(primaryServer);
+                return getServerInterface();
             } catch (Exception e) {
-                LOG.error("Server not available: " + serverCfg, e);
+                LOG.warn("Actual primary server not available: " + mainRegistryServer, e);
+                mainRegistryServer = null;
+                getPrimary();
             }
         }
-        return null;
+        throw new RemoteException("No remote registry server is available");
+    }
+
+    private ServerInterface getServerInterface() throws RemoteException {
+        ServerCfg primaryServer = ServerClientUtility.lookup(mainRegistryServer).getMainRegistryServer();
+        final ServerInterface serverInterface = ServerClientUtility.lookup(primaryServer);
+        mainRegistryServer = primaryServer;
+        return serverInterface;
     }
 
     @Override

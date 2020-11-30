@@ -8,6 +8,15 @@ import java.rmi.RemoteException;
 import java.util.List;
 
 public interface ClientInterface extends Remote {
+    /**
+     * It searches for the instance from the main server.
+     * <ul>
+     *     <li>when the main registry server was found, it will save it, till it isn't available anymore</li>
+     *     <li>if the saved main registry server isn't available anymore, it will search for a new registry server</li>
+     * </ul>
+     * @return the new main registry server
+     * @throws RemoteException see {@link RemoteException}
+     */
     ServerInterface getPrimary() throws RemoteException;
 
     void setFrame(JFrame frame) throws RemoteException;
