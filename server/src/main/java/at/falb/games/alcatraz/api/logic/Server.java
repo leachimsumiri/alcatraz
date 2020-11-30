@@ -130,8 +130,14 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
     @Override
     public void register(GamePlayer gamePlayer) throws GamePlayerException, RemoteException, SpreadException {
+
         checkForNullAndEmptyName(gamePlayer);
         String errorMessage;
+        if (gameStatus != GameStatus.NOT_STARTED) {
+            errorMessage = "Game already started!!";
+            LOG.error(errorMessage);
+            throw new GamePlayerException(errorMessage);
+        }
 
         final int size = gamePlayerList.size();
         if (size >= ServerValues.MAX_PLAYERS) {
