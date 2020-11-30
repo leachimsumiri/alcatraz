@@ -41,14 +41,14 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         if (mainRegistryServer == null) {
             for (ServerCfg serverCfg : ALL_POSSIBLE_SERVERS) {
                 try {
-                    return getServerInterface();
+                    return getServerInterface(serverCfg);
                 } catch (Exception e) {
                     LOG.error("Server not available: " + serverCfg, e);
                 }
             }
         } else {
             try {
-                return getServerInterface();
+                return getServerInterface(mainRegistryServer);
             } catch (Exception e) {
                 LOG.warn("Actual primary server not available: " + mainRegistryServer, e);
                 mainRegistryServer = null;
@@ -58,8 +58,8 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         throw new RemoteException("No remote registry server is available");
     }
 
-    private ServerInterface getServerInterface() throws RemoteException {
-        ServerCfg primaryServer = ServerClientUtility.lookup(mainRegistryServer).getMainRegistryServer();
+    private ServerInterface getServerInterface(ServerCfg serverCfg) throws RemoteException {
+        ServerCfg primaryServer = ServerClientUtility.lookup(serverCfg).getMainRegistryServer();
         final ServerInterface serverInterface = ServerClientUtility.lookup(primaryServer);
         mainRegistryServer = primaryServer;
         return serverInterface;
