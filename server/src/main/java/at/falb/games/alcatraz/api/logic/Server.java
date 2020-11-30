@@ -20,7 +20,6 @@ import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.MalformedURLException;
 import java.net.UnknownHostException;
-import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
 import java.rmi.server.UnicastRemoteObject;
 import java.util.ArrayList;
@@ -103,7 +102,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
      * @throws SpreadException
      * @throws MalformedURLException
      */
-    public static synchronized Server build(ServerCfg serverCfg) throws RemoteException, UnknownHostException, SpreadException, MalformedURLException {
+    public static Server build(ServerCfg serverCfg) throws RemoteException, UnknownHostException, SpreadException, MalformedURLException {
         if (instance == null) {
             final SpreadConnection connection = new SpreadConnection();
             connection.connect(InetAddress.getByName(serverCfg.getSpreaderIp()),
@@ -130,9 +129,15 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
     }
 
     @Override
-    public void register(GamePlayer gamePlayer) throws GamePlayerException, RemoteException, NotBoundException, MalformedURLException {
+    public void register(GamePlayer gamePlayer) throws GamePlayerException, RemoteException, SpreadException {
+
         checkForNullAndEmptyName(gamePlayer);
         String errorMessage;
+        if (gameStatus != GameStatus.NOT_STARTED) {
+            errorMessage = "Game already started!!";
+            LOG.error(errorMessage);
+            throw new GamePlayerException(errorMessage);
+        }
 
         final int size = gamePlayerList.size();
         if (size >= ServerValues.MAX_PLAYERS) {
@@ -151,6 +156,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         }
         gamePlayer.setId(gamePlayerList.size());
         gamePlayerList.add(gamePlayer);
+        announceToGroup((Serializable) gamePlayerList);
         updateClientsPlayersList();
         LOG.info(String.format("Player %s registered!!", gamePlayer));
     }

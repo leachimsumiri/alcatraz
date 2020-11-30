@@ -97,6 +97,15 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
             LOG.info("Received move from player: " + player);
             this.game.doMove(player, gameMove.getPrisoner(), gameMove.getRowOrCol(), gameMove.getRow(),
                     gameMove.getColumn());
+            if (this.gamePlayer.getId() != (player.getId() + 1) % gamePlayersList.size()) {
+                for (GamePlayer current : gamePlayersList) {
+                    if (current.getId() == (player.getId() + 1) % gamePlayersList.size()) {
+                        LOG.info("Wait for player " + current.getName() + " to play");
+                    }
+                }
+            } else {
+                LOG.info("It's your turn!");
+            }
         } catch (IllegalMoveException e) {
             LOG.error("Something went wrong when communication move to game", e);
         }
@@ -112,6 +121,9 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     public void startGame(List<GamePlayer> gamePlayersList){
         try {
             this.game.init(gamePlayersList.size(), this.gamePlayer.getId());
+            for (int idx = 0 ; idx < gamePlayersList.size(); idx++ ){
+                this.game.getPlayer(idx).setName(gamePlayersList.get(idx).getName());
+            }
         } catch (Exception e) {
             LOG.error("Something went wrong when initializing game", e);
         }
@@ -122,6 +134,15 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
         this.game.showWindow();
         this.game.start();
         LOG.info("Started game with player: " + gamePlayersList);
+        if (this.gamePlayer.getId() != 0) {
+            for (GamePlayer current:gamePlayersList) {
+                if (current.getId() == 0) {
+                    LOG.info("Wait for player " + current.getName() + " to play");
+                }
+            }
+        } else {
+            LOG.info("It's your turn!");
+        }
         this.frame.setVisible(false);
     }
 
