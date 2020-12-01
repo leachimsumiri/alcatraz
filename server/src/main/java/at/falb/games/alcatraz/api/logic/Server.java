@@ -189,7 +189,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         }
 
         List<GamePlayer> gamePlayerListOld = new ArrayList<>(gamePlayerList);
-        gamePlayerList.remove(gamePlayer);
+        gamePlayerList.remove(optionalGamePlayer.get());
         AtomicInteger repairId = new AtomicInteger();
         gamePlayerList.forEach(p -> p.setId(repairId.getAndIncrement()));
 

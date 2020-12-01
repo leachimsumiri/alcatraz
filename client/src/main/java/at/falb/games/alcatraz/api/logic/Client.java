@@ -40,6 +40,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     public ServerInterface getPrimary() throws RemoteException {
         if (mainRegistryServer == null) {
             for (ServerCfg serverCfg : ALL_POSSIBLE_SERVERS) {
+                LOG.info(String.format("Show registry server: %s ", serverCfg));
                 try {
                     return getServerInterface(serverCfg);
                 } catch (Exception e) {

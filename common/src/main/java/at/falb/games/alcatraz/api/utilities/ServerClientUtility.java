@@ -96,7 +96,7 @@ public final class ServerClientUtility {
                 Registry registry = LocateRegistry.getRegistry(ip, port);
                 return (T) registry.lookup(type == RmiType.SERVER ? "server" : "client");
             } catch (RemoteException | NotBoundException e) {
-                LOG.error(String.format("Try %d: try to connect with RMI. %s ", i, completedRmiUrl), e);
+                LOG.error(String.format("Try %d: try to connect with RMI. %s:%d ", i, ip, port), e);
                 try {
                     Thread.sleep(3000);
                 } catch (InterruptedException e1) {

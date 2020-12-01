@@ -9,6 +9,7 @@ import at.falb.games.alcatraz.api.utilities.JsonHandler;
 import at.falb.games.alcatraz.api.utilities.PlayerStatus;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import at.falb.games.alcatraz.api.utilities.UpdatePlayerThread;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.log4j.LogManager;
 import org.apache.log4j.Logger;
 import spread.SpreadException;
@@ -21,7 +22,6 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.rmi.NotBoundException;
 import java.rmi.RemoteException;
-import java.util.List;
 
 
 public class ClientRun {
@@ -57,9 +57,13 @@ public class ClientRun {
         }
 
         frame = new JFrame(gc);
+        frame.setDefaultCloseOperation(WindowConstants.DO_NOTHING_ON_CLOSE);
         frame.setTitle("Welecome to the Alcatraz Lobby");
         frame.setSize(600, 400);
         frame.setLocation(200, 200);
+        // To prevent the window from closing, when no or cancel are pressed
+        frame.addWindowListener(closePlayerWindow());
+
 
         JLabel label = new JLabel();
         label.setText("Enter Name :");
@@ -90,7 +94,6 @@ public class ClientRun {
         frame.add(playerListTextArea);
 
         frame.setVisible(true);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         frame.setResizable(false);
 
         client.setFrame(frame);
@@ -98,31 +101,11 @@ public class ClientRun {
         submitButton.addActionListener(a -> submitAction());
         startGameButton.addActionListener(a -> startGameAction());
         deregisterButton.addActionListener(a -> deregisterAction());
-        frame.addWindowListener(new WindowAdapter(){
-            public void windowClosing(WindowEvent e){
-                int i = JOptionPane.showConfirmDialog(null, "Are you sure you want to quit?");
-                boolean playerRegistered = false;
-                try {
-                    List<GamePlayer> gamePlayersList = client.getGamePlayersList();
-                    for (GamePlayer current :
-                            gamePlayersList) {
-                        if (gamePlayer.getName() != null && current.getName().equals(gamePlayer.getName())) {
-                            playerRegistered = true;
-                        }
-                    }
-                } catch (RemoteException ex) {
-                    LOG.error("Something went wrong", ex);
-                }
-                if (i == 0 && gamePlayer.getName() != null && playerRegistered) {
-                    deregisterAction();
-                    System.exit(0);
-                }
-            }
-        });
         updateVisibility();
     }
 
     private static void deregisterAction() {
+        frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
             gamePlayer = client.getGamePlayer();
             client.getPrimary().deregister(gamePlayer);
@@ -134,13 +117,16 @@ public class ClientRun {
             LOG.error("Something went wrong", e);
             JOptionPane.showMessageDialog(frame, e.getMessage());
         }
+        frame.setCursor(Cursor.getDefaultCursor());
     }
 
     private static void startGameAction() {
+        frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
             client.getPrimary().beginGame();
             playerStatus = PlayerStatus.GAME_STARTED;
             thread.interrupt();
+            thread = null;
             updateVisibility();
         } catch (BeginGameException e) {
             LOG.error(e.getMessage());
@@ -149,9 +135,11 @@ public class ClientRun {
             LOG.error("Something went wrong", e);
             JOptionPane.showMessageDialog(frame, e.getMessage());
         }
+        frame.setCursor(Cursor.getDefaultCursor());
     }
 
     private static void submitAction() {
+        frame.setCursor(Cursor.getPredefinedCursor(Cursor.WAIT_CURSOR));
         try {
             String name = nameTextField.getText();
             gamePlayer.setName(name);
@@ -165,6 +153,7 @@ public class ClientRun {
             LOG.error("Something went wrong", e);
             JOptionPane.showMessageDialog(frame, e.getMessage());
         }
+        frame.setCursor(Cursor.getDefaultCursor());
     }
 
     private static void updateVisibility() {
@@ -173,5 +162,27 @@ public class ClientRun {
         startGameButton.setEnabled(playerStatus == PlayerStatus.REGISTERED);
         deregisterButton.setEnabled(playerStatus == PlayerStatus.REGISTERED);
         playerListTextArea.setVisible(playerStatus == PlayerStatus.REGISTERED);
+    }
+
+    private static WindowAdapter closePlayerWindow() {
+        return new WindowAdapter() {
+            public void windowClosing(WindowEvent e) {
+                int option = JOptionPane.showConfirmDialog(frame, "Are you sure you want to quit?");
+                if (option != JOptionPane.YES_OPTION) {
+                    return;
+                }
+
+                // in case no server is available
+                frame.setTitle("You are about to quit, waiting for the primary server to deregister");
+                try {
+                    if (CollectionUtils.isNotEmpty(client.getGamePlayersList())) {
+                        deregisterAction();
+                    }
+                } catch (RemoteException ex) {
+                    LOG.error("Something went wrong", ex);
+                }
+                System.exit(0);
+            }
+        };
     }
 }
