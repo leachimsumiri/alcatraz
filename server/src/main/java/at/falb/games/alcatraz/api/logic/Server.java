@@ -225,7 +225,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
         }
 
         for (GamePlayer gamePlayer : gamePlayerList) {
-            final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer);
+            final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer, ServerClientUtility.MAX_RETRIES);
             clientInterface.setId(gamePlayer.getId());
             clientInterface.startGame(gamePlayerList);
         }
@@ -235,7 +235,7 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
 
     private void updateClientsPlayersList(List<GamePlayer> gamePlayerListOld) throws RemoteException {
         for (GamePlayer gamePlayer : gamePlayerListOld) {
-            final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer);
+            final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer, ServerClientUtility.MAX_RETRIES);
             clientInterface.setGamePlayersList(gamePlayerList);
             clientInterface.setId(gamePlayer.getId());
         }

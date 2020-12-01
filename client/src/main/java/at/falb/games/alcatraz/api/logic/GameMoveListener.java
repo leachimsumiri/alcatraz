@@ -30,7 +30,7 @@ public class GameMoveListener implements MoveListener {
         for (GamePlayer current_player : other_players) {
             try {
                 if (player.getId() != current_player.getId()) {
-                    ClientInterface client = ServerClientUtility.lookup(current_player);
+                    ClientInterface client = ServerClientUtility.lookup(current_player, ServerClientUtility.UNLIMITED_RETRIES);
                     client.move(player, new GameMove(col, row, rowOrCol, prisoner));
                     LOG.info("Send move to player: " + current_player);
                 }

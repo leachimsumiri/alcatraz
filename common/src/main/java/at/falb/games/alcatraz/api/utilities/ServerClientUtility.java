@@ -23,7 +23,8 @@ public final class ServerClientUtility {
     private static final List<ServerCfg> SERVER_CFG_LIST = new ArrayList<>();
 
     // How many times will the sender, try to reach the other RMI server
-    private static final int MAX_RETRIES = 4;
+    public static final int MAX_RETRIES = 4;
+    public static final int UNLIMITED_RETRIES = Integer.MAX_VALUE;
 
     private enum RmiType {
         // This is the client
@@ -61,11 +62,12 @@ public final class ServerClientUtility {
     /**
      * Look for client RMI registry server
      * @param gamePlayer instance of type {@link GamePlayer}
+     * @param maxTries the number of times to try to connect
      * @return the remote of type {@link ClientInterface}
      * @throws RemoteException see {@link LocateRegistry#getRegistry(String, int)}
      */
-    public static ClientInterface lookup(GamePlayer gamePlayer) throws RemoteException {
-        return lookup(gamePlayer.getIp(), gamePlayer.getPort(), gamePlayer.getName(), RmiType.PLAYER);
+    public static ClientInterface lookup(GamePlayer gamePlayer, int maxTries) throws RemoteException {
+        return lookup(gamePlayer.getIp(), gamePlayer.getPort(), gamePlayer.getName(), RmiType.PLAYER, maxTries);
     }
 
     /**
@@ -75,7 +77,7 @@ public final class ServerClientUtility {
      * @throws RemoteException see {@link LocateRegistry#getRegistry(String, int)}
      */
     public static ServerInterface lookup(ServerCfg serverCfg) throws RemoteException {
-        return lookup(serverCfg.getServerIp(), serverCfg.getRegistryPort(), serverCfg.getName(), RmiType.SERVER);
+        return lookup(serverCfg.getServerIp(), serverCfg.getRegistryPort(), serverCfg.getName(), RmiType.SERVER, MAX_RETRIES);
     }
 
     /**
@@ -86,12 +88,12 @@ public final class ServerClientUtility {
      * @param port the port used by RMI
      * @param name the name of the server or player
      * @param type the type of RMI server -> Client(aka Player) or Server
+     * @param maxTries the maximum number of tries
      * @return an instance of type {@link Remote}
      * @throws RemoteException see {@link RemoteException}
      */
-    private static <T extends Remote> T lookup(String ip, int port, String name, RmiType type) throws RemoteException {
-        final String completedRmiUrl = completesTheRmiUrl(ip, port);
-        for (int i = 0; i < MAX_RETRIES; i++) {
+    private static <T extends Remote> T lookup(String ip, int port, String name, RmiType type, int maxTries) throws RemoteException {
+        for (int i = 0; i < maxTries; i++) {
             try {
                 Registry registry = LocateRegistry.getRegistry(ip, port);
                 return (T) registry.lookup(type == RmiType.SERVER ? "server" : "client");
@@ -107,17 +109,12 @@ public final class ServerClientUtility {
         throw new RemoteException(String.format("The %s with the name %s wasn't reachable", type.name(), name));
     }
 
-    private static String completesTheRmiUrl(String url, int port) {
-        return String.format(url, port);
-    }
-
     /**
      * Creates a client RMI registry Server
      * @param clientInterface an instance of type {@link ClientInterface}
      * @throws RemoteException see {@link RemoteException}
-     * @throws MalformedURLException see {@link MalformedURLException}
      */
-    public static void createRegistry(ClientInterface clientInterface) throws RemoteException, MalformedURLException {
+    public static void createRegistry(ClientInterface clientInterface) throws RemoteException {
         final GamePlayer gamePlayer = clientInterface.getGamePlayer();
         createRegistry(clientInterface, gamePlayer.getPort(), RmiType.PLAYER);
     }
