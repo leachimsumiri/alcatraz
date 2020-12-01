@@ -224,13 +224,18 @@ public class Server extends UnicastRemoteObject implements ServerInterface {
             throw new BeginGameException("Not enough players are register");
         }
 
+        gameStatus = GameStatus.STARTED;
+        announceToGroup(gameStatus);
         for (GamePlayer gamePlayer : gamePlayerList) {
             final ClientInterface clientInterface = ServerClientUtility.lookup(gamePlayer, ServerClientUtility.MAX_RETRIES);
             clientInterface.setId(gamePlayer.getId());
             clientInterface.startGame(gamePlayerList);
         }
-        gameStatus = GameStatus.STARTED;
+
+        gameStatus = GameStatus.NOT_STARTED;
         announceToGroup(gameStatus);
+        gamePlayerList.clear();
+        announceToGroup((Serializable) gamePlayerList);
     }
 
     private void updateClientsPlayersList(List<GamePlayer> gamePlayerListOld) throws RemoteException {
