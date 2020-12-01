@@ -8,6 +8,7 @@ import at.falb.games.alcatraz.api.MoveListener;
 import at.falb.games.alcatraz.api.Player;
 import at.falb.games.alcatraz.api.ServerInterface;
 import at.falb.games.alcatraz.api.utilities.GameMove;
+import at.falb.games.alcatraz.api.utilities.GameStatus;
 import at.falb.games.alcatraz.api.utilities.ServerCfg;
 import at.falb.games.alcatraz.api.utilities.ServerClientUtility;
 import org.apache.log4j.LogManager;
@@ -29,6 +30,16 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
     // This ServergetMainRegistryServer is used for the first time
     private ServerCfg mainRegistryServer;
     private JFrame frame;
+    private GameStatus gameStatus = GameStatus.NOT_STARTED;
+
+    public void setGameStatus(GameStatus gameStatus) {
+        this.gameStatus = gameStatus;
+    }
+
+    @Override
+    public GameStatus getGameStatus() {
+        return gameStatus;
+    }
 
     private final Alcatraz game = new Alcatraz();
     private MoveListener listener;
@@ -134,6 +145,7 @@ public class Client extends UnicastRemoteObject implements ClientInterface {
 
         this.game.showWindow();
         this.game.start();
+        this.gameStatus = GameStatus.STARTED;
         LOG.info("Started game with player: " + gamePlayersList);
         if (this.gamePlayer.getId() != 0) {
             for (GamePlayer current:gamePlayersList) {

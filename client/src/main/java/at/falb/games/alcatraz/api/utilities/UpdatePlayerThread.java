@@ -30,7 +30,7 @@ public class UpdatePlayerThread extends Thread {
 
         do {
             try {
-                toExit = client.getPrimary().getGameStatus().equals(GameStatus.STARTED);
+                toExit = client.getGameStatus().equals(GameStatus.STARTED);
                 List<GamePlayer> currentGamePlayersList = client.getGamePlayersList();
 
                 if (!lastGamePlayersList.equals(currentGamePlayersList)) {

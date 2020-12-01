@@ -1,6 +1,7 @@
 package at.falb.games.alcatraz.api;
 
 import at.falb.games.alcatraz.api.utilities.GameMove;
+import at.falb.games.alcatraz.api.utilities.GameStatus;
 
 import javax.swing.*;
 import java.rmi.Remote;
@@ -8,6 +9,8 @@ import java.rmi.RemoteException;
 import java.util.List;
 
 public interface ClientInterface extends Remote {
+    GameStatus getGameStatus() throws RemoteException;
+
     /**
      * It searches for the instance from the main server.
      * <ul>
