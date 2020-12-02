@@ -175,7 +175,7 @@ public class ClientRun {
                 // in case no server is available
                 frame.setTitle("You are about to quit, waiting for the primary server to deregister");
                 try {
-                    if (CollectionUtils.isNotEmpty(client.getGamePlayersList())) {
+                    if (CollectionUtils.isNotEmpty(client.getGamePlayersList()) && playerStatus == PlayerStatus.REGISTERED) {
                         deregisterAction();
                     }
                 } catch (RemoteException ex) {
